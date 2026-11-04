@@ -1,26 +1,255 @@
 @import "tailwindcss";
 
+/* Renaissance Commerce app theme.
+   Dark, warm neutrals with a restrained gold accent. Serif for page titles only;
+   everything functional stays in the sans. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0b0b0d;
+  --bg-elev: #121215;
+  --bg-panel: #17171b;
+  --bg-hover: #1e1e23;
+  --line: #26262c;
+  --line-strong: #34343b;
+  --text: #ece8df;
+  --text-dim: #a19b8f;
+  --text-mute: #6e6a62;
+  --gold: #c9a961;
+  --gold-soft: #e3cf92;
+  --gold-dim: rgba(201, 169, 97, 0.14);
+  --cream: #f1e9d2;
+  --good: #7fb88a;
+  --good-dim: rgba(127, 184, 138, 0.14);
+  --warn: #d9a853;
+  --warn-dim: rgba(217, 168, 83, 0.14);
+  --bad: #d66b6b;
+  --bad-dim: rgba(214, 107, 107, 0.14);
+  --info: #7fa6d6;
+  --info-dim: rgba(127, 166, 214, 0.14);
+  --radius: 10px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-elev: var(--bg-elev);
+  --color-panel: var(--bg-panel);
+  --color-hover: var(--bg-hover);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--text);
+  --color-dim: var(--text-dim);
+  --color-mute: var(--text-mute);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-dim: var(--gold-dim);
+  --color-cream: var(--cream);
+  --color-good: var(--good);
+  --color-good-dim: var(--good-dim);
+  --color-warn: var(--warn);
+  --color-warn-dim: var(--warn-dim);
+  --color-bad: var(--bad);
+  --color-bad-dim: var(--bad-dim);
+  --color-info: var(--info);
+  --color-info-dim: var(--info-dim);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "tnum" 1, "cv11" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1.display,
+.display {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--cream);
+}
+
+.hairline {
+  background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+  height: 1px;
+  opacity: 0.5;
+}
+
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.card-elev {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.input {
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  color: var(--text);
+  width: 100%;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+.input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-dim);
+}
+.input::placeholder {
+  color: var(--text-mute);
+}
+select.input {
+  appearance: none;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--gold);
+  color: #141210;
+}
+.btn-primary:hover {
+  background: var(--gold-soft);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--gold-soft);
+  border-color: var(--gold);
+}
+.btn-secondary:hover {
+  background: var(--gold-dim);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--line-strong);
+}
+.btn-ghost:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 500;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.table th {
+  text-align: left;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  font-weight: 500;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+.table tbody tr:hover td {
+  background: var(--bg-hover);
+}
+.table td.num,
+.table th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.pill-good { background: var(--good-dim); color: var(--good); }
+.pill-warn { background: var(--warn-dim); color: var(--warn); }
+.pill-bad { background: var(--bad-dim); color: var(--bad); }
+.pill-info { background: var(--info-dim); color: var(--info); }
+.pill-gold { background: var(--gold-dim); color: var(--gold-soft); }
+.pill-mute { background: var(--bg-hover); color: var(--text-dim); }
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  transition: background 120ms ease, color 120ms ease;
+}
+.nav-link:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.nav-link.active {
+  background: var(--gold-dim);
+  color: var(--gold-soft);
+}
+
+.formula {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.recharts-cartesian-grid line { stroke: var(--line); }
+.recharts-text { fill: var(--text-mute); font-size: 11px; }
+.recharts-default-tooltip {
+  background: var(--bg-elev) !important;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 8px;
+  color: var(--text) !important;
 }

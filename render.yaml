@@ -1,0 +1,78 @@
+# Render blueprint: web app + ingestion cron + Monday WBR cron.
+# Secrets are set in the Render dashboard (sync: false), never committed.
+services:
+  - type: web
+    name: rc-app
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: APP_URL
+        value: https://app.renaissancecommerce.com
+      - key: DEMO_MODE
+        value: "false"
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: INTEGRATIONS_ENCRYPTION_KEY
+        sync: false
+      - key: SHOPIFY_CLIENT_ID
+        sync: false
+      - key: SHOPIFY_CLIENT_SECRET
+        sync: false
+      - key: META_APP_ID
+        sync: false
+      - key: META_APP_SECRET
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_PRIVATE_CIRCLE_URL
+        value: https://privatecircle.renaissancecommerce.com
+
+  - type: cron
+    name: rc-sync-hourly
+    runtime: node
+    schedule: "17 * * * *"
+    buildCommand: npm ci
+    startCommand: npx tsx workers/sync.ts
+    envVars:
+      - fromService: { type: web, name: rc-app, envVarKey: NEXT_PUBLIC_SUPABASE_URL }
+      - fromService: { type: web, name: rc-app, envVarKey: SUPABASE_SERVICE_ROLE_KEY }
+      - fromService: { type: web, name: rc-app, envVarKey: INTEGRATIONS_ENCRYPTION_KEY }
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+
+  - type: cron
+    name: rc-backfill-nightly
+    runtime: node
+    schedule: "0 3 * * *"
+    buildCommand: npm ci
+    startCommand: npx tsx workers/sync.ts --backfill
+    envVars:
+      - fromService: { type: web, name: rc-app, envVarKey: NEXT_PUBLIC_SUPABASE_URL }
+      - fromService: { type: web, name: rc-app, envVarKey: SUPABASE_SERVICE_ROLE_KEY }
+      - fromService: { type: web, name: rc-app, envVarKey: INTEGRATIONS_ENCRYPTION_KEY }
+
+  - type: cron
+    name: rc-wbr-monday
+    runtime: node
+    schedule: "0 11 * * 1"   # 06:00 America/New_York
+    buildCommand: npm ci
+    startCommand: npx tsx workers/wbr.ts
+    envVars:
+      - fromService: { type: web, name: rc-app, envVarKey: NEXT_PUBLIC_SUPABASE_URL }
+      - fromService: { type: web, name: rc-app, envVarKey: SUPABASE_SERVICE_ROLE_KEY }
+      - fromService: { type: web, name: rc-app, envVarKey: ANTHROPIC_API_KEY }
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: Renaissance Commerce <reviews@renaissancecommerce.com>
