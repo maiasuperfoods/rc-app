@@ -12,7 +12,7 @@ import { supabaseAdmin } from "../src/lib/supabase/server";
 import { PROVIDERS, loadCredentials, markSync, type Provider } from "../src/lib/integrations/store";
 import { shopify } from "../src/lib/integrations/shopify";
 import { meta } from "../src/lib/integrations/meta";
-import { tripleWhale } from "../src/lib/integrations/triple-whale";
+import { tripleWhale, tripleWhaleAdAttribution } from "../src/lib/integrations/triple-whale";
 import { lifetimely } from "../src/lib/integrations/lifetimely";
 import { commslayer } from "../src/lib/integrations/commslayer";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -97,7 +97,14 @@ async function pullAndWrite(db: SupabaseClient, tenantId: string, provider: Prov
     }
     case "meta": {
       const rows = await meta.pull(tenantId, creds, from, to);
-      return up("ad_daily_insights", rows.map((r) => ({ tenant_id: tenantId, date: r.date, ad_id: r.adId, ad_name: r.adName, ad_set_id: r.adSetId, campaign_id: r.campaignId, spend: r.spend, impressions: r.impressions, clicks: r.clicks, purchases: r.purchases, purchase_value: r.purchaseValue, thumbstop_rate: r.thumbstopRate, hold_rate: r.holdRate, launched_at: r.launchedAt })), "tenant_id,date,ad_id");
+      // Keep NC/TW attribution written by the Triple Whale pixel pass: upsert only the Meta columns.
+      let n = await up("ad_daily_insights", rows.map((r) => ({ tenant_id: tenantId, date: r.date, ad_id: r.adId, ad_name: r.adName, ad_set_id: r.adSetId, ad_set_name: r.adSetName, campaign_id: r.campaignId, campaign_name: r.campaignName, format: r.format, spend: r.spend, impressions: r.impressions, clicks: r.clicks, link_clicks: r.linkClicks, meta_purchases: r.metaPurchases, meta_revenue: r.metaRevenue, plays_3s: r.plays3s, thruplays: r.thruplays, launched_at: r.launchedAt })), "tenant_id,date,ad_id");
+      const tw = await loadCredentials(db, tenantId, "triple_whale");
+      if (tw) {
+        const attr = await tripleWhaleAdAttribution(tw, from, to);
+        n += await up("ad_daily_insights", attr.map((r) => ({ tenant_id: tenantId, date: r.date, ad_id: r.adId, ad_name: r.adName, tw_purchases: r.twPurchases, tw_revenue: r.twRevenue, nc_purchases: r.ncPurchases, nc_revenue: r.ncRevenue, new_visitors: r.newVisitors, unique_visitors: r.uniqueVisitors })), "tenant_id,date,ad_id");
+      }
+      return n;
     }
     case "triple_whale": {
       const rows = await tripleWhale.pull(tenantId, creds, from, to);

@@ -1,6 +1,7 @@
 import type { DataSource, SessionUser } from "./source";
 import type { BrandBook, CoachNote, CostInputs, Membership, Offer, OpexLine, Sku, SpendPlan, Supplier, Tenant, Upsell, WbrReport } from "@/lib/types";
 import * as D from "@/lib/demo/data";
+import type { ForecastInputs } from "@/lib/calc/forecast";
 
 // Mutable in-process store so edits persist for the life of the server process.
 // `globalThis` keeps it across Next.js hot reloads in development.
@@ -16,6 +17,7 @@ type Store = {
   brandBooks: Record<string, BrandBook>;
   wbr: WbrReport[];
   notes: CoachNote[];
+  forecasts: Record<string, ForecastInputs>;
 };
 const g = globalThis as unknown as { __rcDemoStore?: Store };
 function store(): Store {
@@ -32,6 +34,7 @@ function store(): Store {
       brandBooks: structuredClone(D.demoBrandBooks),
       wbr: [],
       notes: structuredClone(D.demoNotes),
+      forecasts: structuredClone(D.demoForecasts),
     };
   }
   return g.__rcDemoStore;
@@ -61,7 +64,8 @@ export const emptyBrandBook = (tenantId: string): BrandBook => ({
   proof: [],
   objections: [],
   complianceRails: ["No disease claims", "No 'cure', 'treat' or 'prevent'", "Before/after only with written consent"],
-  adNamingConvention: "[Angle] | [Stage] | [Hook] | [Format] | [Product] | [Creator]",
+  adNamingConvention: "[Angle] | [Awareness] | [Name] | [Type] | [Product] | [Strategist]",
+  strategists: [],
 });
 
 export class DemoSource implements DataSource {
@@ -152,6 +156,13 @@ export class DemoSource implements DataSource {
     store().spendPlans[plan.tenantId] = plan;
   }
 
+  async forecastInputs(tenantId: string) {
+    return store().forecasts[tenantId] ?? null;
+  }
+  async saveForecastInputs(tenantId: string, inputs: ForecastInputs) {
+    store().forecasts[tenantId] = inputs;
+  }
+
   async brandBook(tenantId: string) {
     return store().brandBooks[tenantId] ?? emptyBrandBook(tenantId);
   }
@@ -175,6 +186,9 @@ export class DemoSource implements DataSource {
   }
   async integrations(tenantId: string) {
     return D.demoIntegrations[tenantId] ?? [];
+  }
+  async creativeTasks(tenantId: string) {
+    return D.demoTasks[tenantId] ?? [];
   }
 
   async wbrReports(tenantId: string, limit: number) {

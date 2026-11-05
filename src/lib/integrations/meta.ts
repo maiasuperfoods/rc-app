@@ -34,7 +34,7 @@ export async function metaListAdAccounts(token: string): Promise<{ id: string; n
   return (json.data ?? []).filter((a: any) => a.account_status === 1).map((a: any) => ({ id: a.id, name: a.name }));
 }
 
-const FIELDS = ["ad_id", "ad_name", "adset_id", "campaign_id", "spend", "impressions", "clicks", "actions", "action_values", "video_play_actions", "video_thruplay_watched_actions", "created_time"].join(",");
+const FIELDS = ["ad_id", "ad_name", "adset_id", "adset_name", "campaign_id", "campaign_name", "spend", "impressions", "clicks", "inline_link_clicks", "actions", "action_values", "video_play_actions", "video_thruplay_watched_actions"].join(",");
 
 export const meta: Connector<MetaSync> = {
   async test(creds) {
@@ -70,14 +70,23 @@ export const meta: Connector<MetaSync> = {
             adId: r.ad_id,
             adName: r.ad_name,
             adSetId: r.adset_id,
+            adSetName: r.adset_name ?? "",
             campaignId: r.campaign_id,
+            campaignName: r.campaign_name ?? "",
+            status: "ACTIVE", // refreshed by the ad-status pass in the worker
+            format: plays3s > 0 ? "Video" : "Static",
+            thumbnailUrl: null,
             spend: Number(r.spend ?? 0),
             impressions,
             clicks: Number(r.clicks ?? 0),
-            purchases: act("purchase") || act("omni_purchase"),
-            purchaseValue: actVal("purchase") || actVal("omni_purchase"),
-            thumbstopRate: plays3s && impressions ? plays3s / impressions : null,
-            holdRate: plays3s && thru ? thru / plays3s : null,
+            linkClicks: Number(r.inline_link_clicks ?? 0),
+            metaPurchases: act("purchase") || act("omni_purchase"),
+            metaRevenue: actVal("purchase") || actVal("omni_purchase"),
+            // Triple Whale pixel fills these in a second pass (see worker); Meta cannot tell new from returning.
+            twPurchases: 0, twRevenue: 0, ncPurchases: 0, ncRevenue: 0,
+            plays3s: plays3s || null,
+            thruplays: thru || null,
+            newVisitors: null, uniqueVisitors: null,
             launchedAt: r.date_start,
           });
         }

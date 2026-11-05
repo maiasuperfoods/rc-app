@@ -152,6 +152,14 @@ create table if not exists spend_plans (
   primary key (tenant_id, month)
 );
 
+-- ---- forecast model inputs (one JSON document per tenant; versions in audit_log) ---
+
+create table if not exists forecast_inputs (
+  tenant_id uuid primary key references tenants(id) on delete cascade,
+  data jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
 -- ---- brand book (versioned JSON) ---------------------------------------------
 
 create table if not exists brand_books (
@@ -218,18 +226,47 @@ create table if not exists ad_daily_insights (
   ad_id text not null,
   ad_name text not null,
   ad_set_id text,
+  ad_set_name text,
   campaign_id text,
+  campaign_name text,
+  status text not null default 'ACTIVE',
+  format text not null default 'Video',
+  thumbnail_url text,
   spend numeric(14,2) not null default 0,
   impressions bigint not null default 0,
   clicks int not null default 0,
-  purchases int not null default 0,
-  purchase_value numeric(14,2) not null default 0,
-  thumbstop_rate numeric(6,4),
-  hold_rate numeric(6,4),
+  link_clicks int not null default 0,
+  meta_purchases int not null default 0,      -- platform-reported
+  meta_revenue numeric(14,2) not null default 0,
+  tw_purchases int not null default 0,        -- Triple Whale pixel, all customers
+  tw_revenue numeric(14,2) not null default 0,
+  nc_purchases int not null default 0,        -- Triple Whale pixel, new customers (decides winners)
+  nc_revenue numeric(14,2) not null default 0,
+  plays_3s int,
+  thruplays int,
+  new_visitors int,
+  unique_visitors int,
   launched_at date,
   primary key (tenant_id, date, ad_id)
 );
 create index if not exists ad_insights_ad_idx on ad_daily_insights(tenant_id, ad_id);
+
+-- ClickUp brief pipeline for the Creative Output view (status dates only, never task bodies)
+create table if not exists creative_tasks (
+  tenant_id uuid not null references tenants(id) on delete cascade,
+  task_id text not null,
+  name text not null,
+  strategist text,
+  editors text[] not null default '{}',
+  product text,
+  kind text not null default 'Video',
+  status text not null,
+  brief_date date,
+  ready_date date,
+  closed_date date,
+  updated_at timestamptz not null default now(),
+  primary key (tenant_id, task_id)
+);
 
 create table if not exists cohorts (
   tenant_id uuid not null references tenants(id) on delete cascade,
@@ -318,7 +355,7 @@ begin
 end $$;
 
 do $$ declare t text; begin
-  foreach t in array array['cost_inputs','offers','skus','opex_lines','suppliers','spend_plans','brand_books'] loop
+  foreach t in array array['cost_inputs','offers','skus','opex_lines','suppliers','spend_plans','brand_books','forecast_inputs'] loop
     execute format('drop trigger if exists audit_%s on %s', t, t);
     execute format('create trigger audit_%s after insert or update or delete on %s for each row execute function audit_row()', t, t);
   end loop;

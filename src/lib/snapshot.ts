@@ -1,8 +1,9 @@
 import type { DataSource } from "@/lib/data/source";
 import { computeUnitEconomics, type UnitEconomicsSummary } from "@/lib/calc/unit-economics";
 import { forecastSku, type SkuForecast } from "@/lib/calc/inventory";
-import { parseConvention, summarizeCreative, type CreativeSummary } from "@/lib/calc/creative";
+import { creativeOverview, type CreativeOverview } from "@/lib/calc/creative";
 import { computeFlags, isoDate, mondayOf, rollupWeek, templateCommentary } from "@/lib/calc/wbr";
+import { DEFAULT_CREATIVE_RULES } from "@/lib/types";
 import type { BrandBook, CohortRow, DailyBusinessMetrics, DailySupportMetrics, Flag, IntegrationStatus, Tenant, WbrMetrics } from "@/lib/types";
 
 export interface TenantSnapshot {
@@ -17,7 +18,7 @@ export interface TenantSnapshot {
   monthRevenue: number;
   monthSpend: number;
   forecasts: SkuForecast[];
-  creative: CreativeSummary;
+  creative: CreativeOverview;
   flags: Flag[];
   commentary: string;
   chargebackRate: number | null;
@@ -74,7 +75,7 @@ export async function buildSnapshot(db: DataSource, tenant: Tenant, today = new 
     })
     .filter((x): x is SkuForecast => x !== null);
 
-  const creative = summarizeCreative(ads, parseConvention(brandBook.adNamingConvention), undefined, today);
+  const creative = creativeOverview(ads, brandBook.adNamingConvention, Object.fromEntries((brandBook.strategists ?? []).map((x) => [x.code, x.name])), brandBook.creativeRules ?? DEFAULT_CREATIVE_RULES, today);
 
   const chargebackAlerts = support.reduce((a, s) => a + s.chargebackAlerts, 0);
   const orders60 = daily.filter((d) => d.date >= from60).reduce((a, d) => a + d.orders, 0);

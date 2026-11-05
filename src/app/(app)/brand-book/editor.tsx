@@ -22,7 +22,7 @@ export function BrandBookEditor({ book: initial, products, tenantName }: { book:
   const [book, setBook] = useState<BrandBook>(initial);
   const [pending, start] = useTransition();
   const [tab, setTab] = useState<"core" | "avatars" | "angles" | "proof" | "rails">("core");
-  const [sample, setSample] = useState("Cortisol | ProblemAware | Question | Yapper | NightReset | Jo");
+  const [sample, setSample] = useState("CRT | PA | WakeAt3 | UGC | NightReset | JO");
   const grade = readingGrade(book.mechanism);
   const fields = parseConvention(book.adNamingConvention);
   const sampleOk = sample.split("|").length >= fields.length && fields.length > 0;
@@ -163,7 +163,22 @@ export function BrandBookEditor({ book: initial, products, tenantName }: { book:
             <textarea className="input min-h-48" value={book.complianceRails.join("\n")} onChange={(e) => setBook({ ...book, complianceRails: lines(e.target.value) })} />
             <p className="text-xs text-mute mt-2">One rule per line.</p>
           </Card>
-          <Card title="Ad naming convention" hint="The creative dashboard parses every ad name with this pattern. Fields: angle, stage, hook, format, product, creator, avatar, iteration.">
+          <Card title="Strategists" hint="The code at the end of every ad name → the name shown on the creative dashboard." actions={<button className="btn btn-ghost" onClick={() => setBook({ ...book, strategists: [...(book.strategists ?? []), { code: "", name: "" }] })}><Plus size={14} /> Strategist</button>}>
+            <table className="table">
+              <thead><tr><th>Code</th><th>Name</th><th /></tr></thead>
+              <tbody>
+                {(book.strategists ?? []).map((st, i) => (
+                  <tr key={i}>
+                    <td className="w-32"><input className="input font-mono" value={st.code} placeholder="JO" onChange={(e) => setBook({ ...book, strategists: book.strategists.map((x, j) => (j === i ? { ...x, code: e.target.value.trim().toUpperCase() } : x)) })} /></td>
+                    <td><input className="input" value={st.name} placeholder="Jo Lindqvist" onChange={(e) => setBook({ ...book, strategists: book.strategists.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })} /></td>
+                    <td className="w-8"><button className="text-mute hover:text-bad" onClick={() => setBook({ ...book, strategists: book.strategists.filter((_, j) => j !== i) })}><Trash2 size={14} /></button></td>
+                  </tr>
+                ))}
+                {(book.strategists ?? []).length === 0 && <tr><td colSpan={3} className="text-mute text-center py-4">No strategists yet. Ads without a known code sit under Unassigned.</td></tr>}
+              </tbody>
+            </table>
+          </Card>
+          <Card title="Ad naming convention" hint="The creative dashboard parses every ad name with this pattern. SOP fields: angle, awareness, name, type, product, strategist.">
             <input className="input font-mono text-sm" value={book.adNamingConvention} onChange={(e) => setBook({ ...book, adNamingConvention: e.target.value })} />
             <div className="label mt-4 mb-1.5">Try a sample ad name</div>
             <input className="input font-mono text-sm" value={sample} onChange={(e) => setSample(e.target.value)} />

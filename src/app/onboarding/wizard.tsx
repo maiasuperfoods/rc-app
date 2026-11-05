@@ -49,7 +49,7 @@ export function Wizard({ tenant, integrations, skus: s0, offers: o0, costs: c0, 
   const saveOffersStep = () => start(async () => { await saveOffers(offers.map((o) => ({ ...o, skuId: o.skuId || skus[0]?.id }))); next(); });
   const savePositioning = () =>
     start(async () => {
-      const base: BrandBook = b0 ?? { tenantId: "", version: 0, updatedAt: "", category: "supplement", mechanism: "", avatars: [], angles: [], proof: [], objections: [], complianceRails: ["No disease claims", "No 'cure', 'treat' or 'prevent'", "Before/after only with written consent"], adNamingConvention: "[Angle] | [Stage] | [Hook] | [Format] | [Product] | [Creator]" };
+      const base: BrandBook = b0 ?? { tenantId: "", version: 0, updatedAt: "", category: "supplement", mechanism: "", avatars: [], angles: [], proof: [], objections: [], complianceRails: ["No disease claims", "No 'cure', 'treat' or 'prevent'", "Before/after only with written consent"], adNamingConvention: "[Angle] | [Awareness] | [Name] | [Type] | [Product] | [Strategist]", strategists: [] };
       const avatars = avatar.name ? [{ id: uid(), name: avatar.name, age: "", summary: avatar.summary, painPoints: [], desires: [], objections: [], positioning: avatar.positioning }, ...base.avatars.slice(1)] : base.avatars;
       await saveBrandBook({ ...base, mechanism, avatars });
       next();

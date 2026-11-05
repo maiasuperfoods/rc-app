@@ -24,8 +24,8 @@ export function RevenueSpendChart({ data }: { data: { date: string; revenue: num
         <XAxis dataKey="date" tickFormatter={shortDate} minTickGap={40} axisLine={false} tickLine={false} />
         <YAxis tickFormatter={(v) => `$${v / 1000}k`} width={44} axisLine={false} tickLine={false} />
         <Tooltip formatter={(v) => money(Number(v))} labelFormatter={(l) => shortDate(String(l))} />
-        <Area type="monotone" dataKey="revenue" name="Revenue" stroke={gold} fill="url(#rev)" strokeWidth={1.75} />
-        <Line type="monotone" dataKey="adSpend" name="Ad spend" stroke={info} strokeWidth={1.5} dot={false} />
+        <Area type="monotone" dataKey="revenue" name="Revenue" stroke={gold} fill="url(#rev)" strokeWidth={1.75} isAnimationActive={false} />
+        <Line type="monotone" dataKey="adSpend" name="Ad spend" stroke={info} strokeWidth={1.5} dot={false} isAnimationActive={false} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -40,7 +40,7 @@ export function SimpleLine({ data, x, y, label, format = "money", color = "gold"
         <XAxis dataKey={x} tickFormatter={(s) => (typeof s === "string" && s.length >= 10 ? shortDate(s) : String(s))} minTickGap={40} axisLine={false} tickLine={false} />
         <YAxis tickFormatter={(v) => (format === "money" ? `$${v >= 1000 ? `${v / 1000}k` : v}` : String(v))} width={48} axisLine={false} tickLine={false} />
         <Tooltip formatter={(v) => f(Number(v))} />
-        <Line type="monotone" dataKey={y} name={label} stroke={PALETTE[color]} strokeWidth={1.75} dot={false} />
+        <Line type="monotone" dataKey={y} name={label} stroke={PALETTE[color]} strokeWidth={1.75} dot={false} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
   );
@@ -54,7 +54,7 @@ export function SimpleBars({ data, x, y, label, color = "gold", height = 160, fo
         <XAxis dataKey={x} tickFormatter={(s) => (typeof s === "string" && s.length >= 10 ? shortDate(s) : String(s))} axisLine={false} tickLine={false} />
         <YAxis width={40} axisLine={false} tickLine={false} tickFormatter={(v) => (format === "money" ? `$${v / 1000}k` : String(v))} />
         <Tooltip formatter={(v) => (format === "money" ? money(Number(v)) : Number(v).toLocaleString())} />
-        <Bar dataKey={y} name={label} fill={PALETTE[color]} radius={[4, 4, 0, 0]} />
+        <Bar dataKey={y} name={label} fill={PALETTE[color]} radius={[4, 4, 0, 0]} isAnimationActive={false} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -68,7 +68,7 @@ export function CashChart({ data }: { data: { month: string; cashEnd: number; ne
         <XAxis dataKey="month" axisLine={false} tickLine={false} />
         <YAxis width={52} axisLine={false} tickLine={false} tickFormatter={(v) => `$${Math.round(v / 1000)}k`} />
         <Tooltip formatter={(v) => money(Number(v))} />
-        <Bar dataKey="net" name="Net cash flow" fill={gold} radius={[4, 4, 0, 0]} />
+        <Bar dataKey="net" name="Net cash flow" fill={gold} radius={[4, 4, 0, 0]} isAnimationActive={false} />
         <Line type="monotone" dataKey="cashEnd" name="Cash at month end" stroke={good} dot={false} />
       </BarChart>
     </ResponsiveContainer>

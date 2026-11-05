@@ -6,6 +6,7 @@ import type {
   CoachNote,
   CohortRow,
   CostInputs,
+  CreativeTask,
   DailyBusinessMetrics,
   DailySupportMetrics,
   IntegrationStatus,
@@ -22,6 +23,7 @@ import type {
   WbrReport,
 } from "@/lib/types";
 import { emptyBrandBook } from "./demo";
+import type { ForecastInputs } from "@/lib/calc/forecast";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Row = Record<string, any>;
@@ -182,6 +184,14 @@ export class SupabaseSource implements DataSource {
     if (plan.months.length) await this.q(this.db.from("spend_plans").insert(plan.months.map((m) => ({ tenant_id: plan.tenantId, month: m.month, spend: m.spend }))));
   }
 
+  async forecastInputs(tenantId: string): Promise<ForecastInputs | null> {
+    const rows = await this.q<Row[]>(this.db.from("forecast_inputs").select("data").eq("tenant_id", tenantId).limit(1));
+    return rows[0] ? (rows[0].data as ForecastInputs) : null;
+  }
+  async saveForecastInputs(tenantId: string, inputs: ForecastInputs) {
+    await this.q(this.db.from("forecast_inputs").upsert({ tenant_id: tenantId, data: inputs, updated_at: new Date().toISOString() }));
+  }
+
   async brandBook(tenantId: string): Promise<BrandBook> {
     const rows = await this.q<Row[]>(this.db.from("brand_books").select("*").eq("tenant_id", tenantId).limit(1));
     if (!rows[0]) return emptyBrandBook(tenantId);
@@ -210,7 +220,12 @@ export class SupabaseSource implements DataSource {
   }
   async adInsights(tenantId: string, fromDate: string): Promise<AdDailyInsight[]> {
     const rows = await this.q<Row[]>(this.db.from("ad_daily_insights").select("*").eq("tenant_id", tenantId).gte("date", fromDate).order("date"));
-    return rows.map((r) => ({ tenantId, date: r.date, adId: r.ad_id, adName: r.ad_name, adSetId: r.ad_set_id, campaignId: r.campaign_id, spend: num(r.spend), impressions: num(r.impressions), clicks: num(r.clicks), purchases: num(r.purchases), purchaseValue: num(r.purchase_value), thumbstopRate: r.thumbstop_rate == null ? null : num(r.thumbstop_rate), holdRate: r.hold_rate == null ? null : num(r.hold_rate), launchedAt: r.launched_at }));
+    const opt = (v: unknown) => (v == null ? null : num(v));
+    return rows.map((r) => ({ tenantId, date: r.date, adId: r.ad_id, adName: r.ad_name, adSetId: r.ad_set_id ?? "", adSetName: r.ad_set_name ?? "", campaignId: r.campaign_id ?? "", campaignName: r.campaign_name ?? "", status: r.status ?? "ACTIVE", format: r.format ?? "Video", thumbnailUrl: r.thumbnail_url ?? null, spend: num(r.spend), impressions: num(r.impressions), clicks: num(r.clicks), linkClicks: num(r.link_clicks), metaPurchases: num(r.meta_purchases), metaRevenue: num(r.meta_revenue), twPurchases: num(r.tw_purchases), twRevenue: num(r.tw_revenue), ncPurchases: num(r.nc_purchases), ncRevenue: num(r.nc_revenue), plays3s: opt(r.plays_3s), thruplays: opt(r.thruplays), newVisitors: opt(r.new_visitors), uniqueVisitors: opt(r.unique_visitors), launchedAt: r.launched_at }));
+  }
+  async creativeTasks(tenantId: string): Promise<CreativeTask[]> {
+    const rows = await this.q<Row[]>(this.db.from("creative_tasks").select("*").eq("tenant_id", tenantId));
+    return rows.map((r) => ({ tenantId, taskId: r.task_id, name: r.name, strategist: r.strategist, editors: r.editors ?? [], product: r.product, kind: r.kind ?? "Video", status: r.status, briefDate: r.brief_date, readyDate: r.ready_date, closedDate: r.closed_date, updatedAt: r.updated_at }));
   }
   async integrations(tenantId: string): Promise<IntegrationStatus[]> {
     const rows = await this.q<Row[]>(this.db.from("integrations").select("tenant_id,provider,connected,last_sync_at,last_error,backfill_progress").eq("tenant_id", tenantId));

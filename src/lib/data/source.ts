@@ -1,9 +1,11 @@
+import type { ForecastInputs } from "@/lib/calc/forecast";
 import type {
   AdDailyInsight,
   BrandBook,
   CoachNote,
   CohortRow,
   CostInputs,
+  CreativeTask,
   DailyBusinessMetrics,
   DailySupportMetrics,
   IntegrationStatus,
@@ -63,6 +65,10 @@ export interface DataSource {
   spendPlan(tenantId: string): Promise<SpendPlan>;
   saveSpendPlan(plan: SpendPlan): Promise<void>;
 
+  // forecast model
+  forecastInputs(tenantId: string): Promise<ForecastInputs | null>;
+  saveForecastInputs(tenantId: string, inputs: ForecastInputs): Promise<void>;
+
   // brand book
   brandBook(tenantId: string): Promise<BrandBook>;
   saveBrandBook(book: BrandBook, authorId: string): Promise<BrandBook>;
@@ -73,6 +79,7 @@ export interface DataSource {
   cohorts(tenantId: string): Promise<CohortRow[]>;
   adInsights(tenantId: string, fromDate: string): Promise<AdDailyInsight[]>;
   integrations(tenantId: string): Promise<IntegrationStatus[]>;
+  creativeTasks(tenantId: string): Promise<CreativeTask[]>;
 
   // WBR
   wbrReports(tenantId: string, limit: number): Promise<WbrReport[]>;

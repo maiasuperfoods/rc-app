@@ -89,19 +89,16 @@ export default async function HomePage() {
           </ol>
         </Card>
         <Card title="Creative winners this week" hint="From the creative dashboard">
-          {s.creative.ads.filter((a) => a.status === "winner").length === 0 ? (
+          {s.creative.winners.length === 0 ? (
             <p className="text-sm text-mute">No ad has cleared the winner line yet.</p>
           ) : (
             <ul className="space-y-2">
-              {s.creative.ads
-                .filter((a) => a.status === "winner")
-                .slice(0, 4)
-                .map((a) => (
-                  <li key={a.adId} className="text-sm flex justify-between gap-2">
-                    <span className="truncate text-dim">{a.taxonomy.angle ?? a.adName}</span>
-                    <span className="tabular-nums text-good shrink-0">{fmtX(a.roas)}</span>
-                  </li>
-                ))}
+              {s.creative.winners.slice(0, 4).map((a) => (
+                <li key={a.adId} className="text-sm flex justify-between gap-2">
+                  <span className="truncate text-dim">{a.label} <span className="text-mute">· {a.strategist}</span></span>
+                  <span className="tabular-nums text-good shrink-0">{fmtX(a.ncRoas)} NC</span>
+                </li>
+              ))}
             </ul>
           )}
           <Link href="/creative" className="text-gold-soft text-xs mt-3 inline-block hover:underline">
@@ -139,7 +136,7 @@ function buildNextActions(s: Awaited<ReturnType<typeof buildSnapshot>>) {
   if (s.ue.offers.some((o) => !o.passesRule)) out.push({ title: "Fix the offer that fails the 85% rule", why: "Raise the price, add units, or renegotiate landed cost.", href: "/unit-economics", cta: "See which offer" });
   if (allowable != null && s.week.metrics.ncpa > allowable) out.push({ title: "Pull NCPA under allowable before adding spend", why: "Ship iterations of the current winners (hook swap first).", href: "/creative", cta: "See winners and iterations" });
   if (s.brandBook.avatars.length < 2) out.push({ title: "Write at least two avatars in the Brand Book", why: "One ad, one avatar, one offer. You need avatars to brief creative.", href: "/brand-book", cta: "Open Brand Book" });
-  if (s.creative.velocity.slice(-2).reduce((a, v) => a + v.launched, 0) < 4) out.push({ title: "Launch more creative this week", why: "Fewer than four new ads in two weeks. Reps over talent.", href: "/creative", cta: "See launch velocity" });
+  if (s.creative.launched2w < 4) out.push({ title: "Launch more creative this week", why: "Fewer than four new ads in two weeks. Reps over talent.", href: "/creative", cta: "See launch velocity" });
   if (s.forecasts.some((f) => f.reorderStatus !== "ok" && f.reorderStatus !== "unknown")) out.push({ title: "Place the reorder", why: "A SKU is inside its lead-time window.", href: "/inventory", cta: "Review suggested PO" });
   if (s.integrations.some((i) => !i.connected)) out.push({ title: "Connect the remaining data sources", why: "Each one unlocks a section of the weekly review.", href: "/integrations", cta: "See connections" });
   out.push({ title: "Read this week's review and leave a note for your coach", why: "The Monday ritual: numbers, then one decision.", href: "/wbr", cta: "Open review" });

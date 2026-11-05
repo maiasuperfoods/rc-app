@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Boxes, Calculator, CalendarCheck, Home, Plug, Sparkles, Users } from "lucide-react";
+import { BookOpen, Boxes, Calculator, CalendarCheck, Home, LineChart, Plug, Sparkles, Users } from "lucide-react";
 
 const studentLinks = [
   { href: "/", label: "Home", icon: Home },
   { href: "/brand-book", label: "Brand Book", icon: BookOpen },
   { href: "/unit-economics", label: "Unit Economics", icon: Calculator },
   { href: "/wbr", label: "Weekly Review", icon: CalendarCheck },
+  { href: "/forecast", label: "Forecast", icon: LineChart },
   { href: "/inventory", label: "Inventory", icon: Boxes },
   { href: "/creative", label: "Creative", icon: Sparkles },
   { href: "/integrations", label: "Connections", icon: Plug },

@@ -1,5 +1,5 @@
 import type { DailyBusinessMetrics } from "@/lib/types";
-import { plainError, type Connector, type TripleWhaleSync } from "./types";
+import { plainError, type Connector, type Credentials, type TripleWhaleSync } from "./types";
 
 /**
  * Triple Whale is the business-truth source: blended spend, new vs returning,
@@ -67,3 +67,34 @@ export const tripleWhale: Connector<TripleWhaleSync> = {
     }
   },
 };
+
+/**
+ * Per-ad pixel attribution (new-customer and all-customer purchases by Meta ad
+ * and day). Uses the Triple Whale pixel attribution endpoint; the worker writes
+ * only the attribution columns so Meta's own numbers stay untouched.
+ */
+export async function tripleWhaleAdAttribution(creds: Credentials, from: string, to: string): Promise<{ date: string; adId: string; adName: string; twPurchases: number; twRevenue: number; ncPurchases: number; ncRevenue: number; newVisitors: number | null; uniqueVisitors: number | null }[]> {
+  try {
+    const res = await fetch(`${BASE}/attribution/get-orders-with-attribution`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": creds.apiKey! },
+      body: JSON.stringify({ shopDomain: creds.externalId, period: { start: from, end: to }, model: "Triple Attribution", breakdown: "ad", source: "facebook-ads", granularity: "day" }),
+    });
+    if (!res.ok) throw new Error(`triple whale attribution ${res.status}`);
+    const json: any = await res.json();
+    const list: any[] = Array.isArray(json) ? json : json?.data ?? [];
+    return list.map((r) => ({
+      date: String(r.date ?? r.day ?? "").slice(0, 10),
+      adId: String(r.adId ?? r.ad_id ?? r.id ?? ""),
+      adName: String(r.adName ?? r.name ?? ""),
+      twPurchases: Number(r.purchases ?? r.orders ?? 0),
+      twRevenue: Number(r.revenue ?? r.conversionValue ?? 0),
+      ncPurchases: Number(r.newCustomerPurchases ?? r.ncOrders ?? r.nc_purchases ?? 0),
+      ncRevenue: Number(r.newCustomerRevenue ?? r.ncRevenue ?? r.nc_revenue ?? 0),
+      newVisitors: r.newVisitors == null ? null : Number(r.newVisitors),
+      uniqueVisitors: r.uniqueVisitors == null ? null : Number(r.uniqueVisitors),
+    })).filter((r) => r.date && r.adId);
+  } catch (e) {
+    throw plainError("Triple Whale", e);
+  }
+}

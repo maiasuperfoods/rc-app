@@ -150,7 +150,9 @@ export interface BrandBook {
   proof: ProofItem[];
   objections: Objection[];
   complianceRails: string[];
-  adNamingConvention: string; // "[Angle] | [Stage] | [Hook] | [Format] | [Product] | [Creator]"
+  adNamingConvention: string; // SOP: "[Angle] | [Awareness] | [Name] | [Type] | [Product] | [Strategist]"
+  strategists: { code: string; name: string }[]; // code at the end of the ad name → display name
+  creativeRules?: CreativeRules;
 }
 
 // ---- Ingested metrics --------------------------------------------------
@@ -168,23 +170,70 @@ export interface DailyBusinessMetrics {
   cogs: number;
 }
 
-/** One row per ad per day, from Meta Insights (creative diagnostics only). */
+/**
+ * One row per ad per day. Meta Insights gives spend, impressions, clicks,
+ * platform purchases and the video funnel; Triple Whale's pixel adds the
+ * new-customer (NC) and all-customer (TW) purchases attributed to the ad, and
+ * new-visitor traffic. NC is the number that decides winners.
+ */
 export interface AdDailyInsight {
   tenantId: string;
   date: string;
   adId: string;
   adName: string;
   adSetId: string;
+  adSetName: string;
   campaignId: string;
+  campaignName: string;
+  status: "ACTIVE" | "PAUSED" | "ARCHIVED";
+  format: "Video" | "Static";
+  thumbnailUrl: string | null;
   spend: number;
   impressions: number;
-  clicks: number;
-  purchases: number;
-  purchaseValue: number;
-  thumbstopRate: number | null; // 3s plays / impressions
-  holdRate: number | null; // thruplays / 3s plays
-  launchedAt: string;
+  clicks: number; // all clicks
+  linkClicks: number; // outbound link clicks
+  metaPurchases: number;
+  metaRevenue: number;
+  twPurchases: number; // Triple Whale, all customers
+  twRevenue: number;
+  ncPurchases: number; // Triple Whale, new customers
+  ncRevenue: number;
+  plays3s: number | null; // 3-second video plays
+  thruplays: number | null;
+  newVisitors: number | null;
+  uniqueVisitors: number | null;
+  launchedAt: string; // first spend day ever
 }
+
+/** ClickUp brief task for the Creative Output view (status history, no bodies). */
+export interface CreativeTask {
+  tenantId: string;
+  taskId: string;
+  name: string;
+  strategist: string | null;
+  editors: string[];
+  product: string | null;
+  kind: "Video" | "Static";
+  status: "pending brief" | "for production" | "ready for edit" | "pre-launch review" | "revisions" | "ready for launch" | "completee";
+  briefDate: string | null; // day it entered For production
+  readyDate: string | null; // day it reached Ready for launch
+  closedDate: string | null; // published
+  updatedAt: string;
+}
+
+/** Thresholds that decide winners, potentials and the Creative Score. Editable per brand. */
+export interface CreativeRules {
+  minSpend: number; // tested = spent at least this in range
+  winRoas: number; // NC ROAS at or above = winner
+  winCpa: number; // or NC CPA at or below (0 disables)
+  potRoas: number; // potential: between potRoas and winRoas
+  minTested: number; // tested ads a strategist needs to be ranked
+  minImp: number; // impressions before creative metrics are judged
+  tgtHit: number; // weekly target hit rate
+  tgtTested: number; // weekly target tested ads
+}
+
+export const DEFAULT_CREATIVE_RULES: CreativeRules = { minSpend: 50, winRoas: 0.9, winCpa: 0, potRoas: 0.7, minTested: 30, minImp: 1000, tgtHit: 0.15, tgtTested: 15 };
 
 /** Cohort LTV row, from Lifetimely or computed from Shopify orders. */
 export interface CohortRow {

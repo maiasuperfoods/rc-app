@@ -34,7 +34,7 @@ export default async function CoachPrepPage({ params }: { params: Promise<{ tena
         <Stat label="Revenue / wk" value={fmtMoney(m.revenue)} delta={pctChange(m.revenue, p.revenue)} />
         <Stat label="NCPA vs allowable" value={<span>{fmtMoney(m.ncpa)} <span className="text-dim text-base">/ {fmtMoney(allow)}</span></span>} tone={allow != null ? (m.ncpa > allow ? "bad" : "good") : "neutral"} />
         <Stat label="Contribution margin" value={fmtPct(m.contributionMarginPct)} delta={pctChange(m.contributionMargin, p.contributionMargin)} />
-        <Stat label="Hit rate · velocity" value={<span>{fmtPct(s.creative.hitRate)} <span className="text-dim text-base">· {s.creative.velocity.slice(-2).reduce((a, v) => a + v.launched, 0)}/2wk</span></span>} />
+        <Stat label="Hit rate · velocity" value={<span>{fmtPct(s.creative.hitRate)} <span className="text-dim text-base">· {s.creative.launched2w}/2wk</span></span>} />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mb-5">

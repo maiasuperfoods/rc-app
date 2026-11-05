@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { DEMO_ROLE_COOKIE, TENANT_COOKIE, getContext, requireCoach } from "@/lib/data";
+import type { ForecastInputs } from "@/lib/calc/forecast";
+import type { CreativeRules } from "@/lib/types";
 import type { BrandBook, CostInputs, Offer, OpexLine, Sku, SpendPlan, Supplier, Tenant, Upsell } from "@/lib/types";
 
 async function tenantCtx() {
@@ -68,6 +70,20 @@ export async function saveSpendPlan(months: SpendPlan["months"]) {
   const { db, tenantId } = await tenantCtx();
   await db.saveSpendPlan({ tenantId, months });
   revalidatePath("/inventory");
+}
+
+export async function saveForecastInputs(inputs: ForecastInputs) {
+  const { db, tenantId } = await tenantCtx();
+  await db.saveForecastInputs(tenantId, inputs);
+  revalidatePath("/forecast");
+}
+
+export async function saveCreativeRules(rules: CreativeRules) {
+  const { db, tenantId, user } = await tenantCtx();
+  const book = await db.brandBook(tenantId);
+  await db.saveBrandBook({ ...book, creativeRules: rules }, user.id);
+  revalidatePath("/creative");
+  revalidatePath("/");
 }
 
 export async function saveBrandBook(book: BrandBook) {

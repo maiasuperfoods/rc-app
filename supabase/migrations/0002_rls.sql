@@ -42,15 +42,15 @@ alter table tenant_access enable row level security;  -- service role only
 do $$ declare t text; begin
   foreach t in array array[
     'products','skus','cost_inputs','offers','upsells','opex_lines','suppliers','inventory_levels',
-    'purchase_orders','spend_plans','brand_books','brand_book_versions','integrations','sync_jobs',
-    'daily_business_metrics','ad_daily_insights','cohorts','daily_support_metrics','wbr_reports','usage_meter'
+    'purchase_orders','spend_plans','brand_books','brand_book_versions','forecast_inputs','integrations','sync_jobs',
+    'daily_business_metrics','ad_daily_insights','creative_tasks','cohorts','daily_support_metrics','wbr_reports','usage_meter'
   ] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists %I_tenant_read on %I', t, t);
     execute format('create policy %I_tenant_read on %I for select using (is_member(tenant_id))', t, t);
   end loop;
   -- tables students may write
-  foreach t in array array['products','skus','cost_inputs','offers','upsells','opex_lines','suppliers','purchase_orders','spend_plans','brand_books','brand_book_versions'] loop
+  foreach t in array array['products','skus','cost_inputs','offers','upsells','opex_lines','suppliers','purchase_orders','spend_plans','brand_books','brand_book_versions','forecast_inputs'] loop
     execute format('drop policy if exists %I_tenant_write on %I', t, t);
     execute format('create policy %I_tenant_write on %I for all using (is_member(tenant_id)) with check (is_member(tenant_id))', t, t);
   end loop;

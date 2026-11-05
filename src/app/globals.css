@@ -77,7 +77,9 @@ h1.display,
   opacity: 0.5;
 }
 
+@layer components {
 .card {
+  min-width: 0;
   background: var(--bg-panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -239,6 +241,8 @@ select.input {
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 0.35rem 0.5rem;
+}
+
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

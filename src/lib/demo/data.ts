@@ -4,6 +4,7 @@
 
 import type {
   AdDailyInsight,
+  CreativeTask,
   BrandBook,
   CoachNote,
   CohortRow,
@@ -173,7 +174,8 @@ export const demoBrandBooks: Record<string, BrandBook> = {
       "Before/after must be real customers with written consent",
       "FDA disclaimer on every landing page",
     ],
-    adNamingConvention: "[Angle] | [Stage] | [Hook] | [Format] | [Product] | [Creator]",
+    adNamingConvention: "[Angle] | [Awareness] | [Name] | [Type] | [Product] | [Strategist]",
+    strategists: [{ code: "JO", name: "Jo Lindqvist" }, { code: "PRI", name: "Priya Raman" }, { code: "MAR", name: "Marcus Hale" }, { code: "STU", name: "In-house studio" }],
   },
   "t-harborpine": {
     tenantId: "t-harborpine",
@@ -186,7 +188,8 @@ export const demoBrandBooks: Record<string, BrandBook> = {
     proof: [],
     objections: [],
     complianceRails: ["No 'anti-aging' claims", "No medical claims"],
-    adNamingConvention: "[Angle] | [Stage] | [Hook] | [Format] | [Product] | [Creator]",
+    adNamingConvention: "[Angle] | [Awareness] | [Name] | [Type] | [Product] | [Strategist]",
+    strategists: [{ code: "JO", name: "Jo Lindqvist" }, { code: "PRI", name: "Priya Raman" }, { code: "MAR", name: "Marcus Hale" }, { code: "STU", name: "In-house studio" }],
   },
   "t-ridgeline": {
     tenantId: "t-ridgeline",
@@ -199,7 +202,8 @@ export const demoBrandBooks: Record<string, BrandBook> = {
     proof: [],
     objections: [],
     complianceRails: [],
-    adNamingConvention: "[Angle] | [Stage] | [Hook] | [Format] | [Product] | [Creator]",
+    adNamingConvention: "[Angle] | [Awareness] | [Name] | [Type] | [Product] | [Strategist]",
+    strategists: [],
   },
 };
 
@@ -282,52 +286,56 @@ export const demoCohorts: Record<string, CohortRow[]> = {
 };
 
 // ---- Ads ----------------------------------------------------------------
+// Ad names follow the SOP: Angle | Awareness | Name | Type | Product | Strategist
 
-const ANGLES = ["Cortisol", "MelatoninHangover", "DeepSleepScore", "DoctorsWife", "3amWakeup"];
-const STAGES = ["Unaware", "ProblemAware", "SolutionAware", "ProductAware"];
-const HOOKS = ["Question", "Confession", "Stat", "Contrarian", "Demo"];
-const FORMATS = ["Yapper", "AuthorityAd", "Listicle", "3ReasonsWhy", "FounderAd", "Static"];
-const CREATORS = ["Jo", "Priya", "Marcus", "Studio"];
+const ANGLES = ["CRT", "MEL", "DSS", "3AM", "DRW"]; // cortisol, melatonin hangover, deep-sleep score, 3am wake-up, doctor's wife
+const AWARE = ["U", "PA", "SA", "PCTA", "MA"];
+const TYPES = ["UGC", "VSL", "AI UGC", "AI Authority", "AI Animation", "Static"];
+const STRATS = ["JO", "PRI", "MAR", "STU"];
+const HOOK_NAMES = ["WakeAt3", "MelatoninFog", "ScoreScreenshot", "HusbandDoctor", "ItsNotStress", "TartCherry", "NoGroggy", "DeepSleep152"];
 
-function adSeries(tenantId: string, seed: number, nAds: number, spendPerDay: number): AdDailyInsight[] {
+function adSeries(tenantId: string, seed: number, nAds: number, spendPerDay: number, product: string, hasPixel: boolean): AdDailyInsight[] {
   const r = rng(seed);
   const out: AdDailyInsight[] = [];
+  const quality: Record<string, number> = { CRT: 1.25, "3AM": 1.1, MEL: 0.95, DSS: 0.8, DRW: 0.7 };
+  const stratLift: Record<string, number> = { JO: 1.1, PRI: 0.95, MAR: 1.05, STU: 0.85 };
   for (let a = 0; a < nAds; a++) {
-    const launched = 60 - Math.floor(r() * 58);
+    const launched = 75 - Math.floor(r() * 73);
     const angle = ANGLES[Math.floor(r() * ANGLES.length)];
-    const stage = STAGES[Math.floor(r() * STAGES.length)];
-    const hook = HOOKS[Math.floor(r() * HOOKS.length)];
-    const format = FORMATS[Math.floor(r() * FORMATS.length)];
-    const creator = CREATORS[Math.floor(r() * CREATORS.length)];
+    const aware = AWARE[Math.floor(r() * AWARE.length)];
+    const type = TYPES[Math.floor(r() * TYPES.length)];
+    const strat = STRATS[Math.floor(r() * STRATS.length)];
+    const hook = HOOK_NAMES[Math.floor(r() * HOOK_NAMES.length)];
     const ok = r() < 0.9;
-    const adName = ok ? `${angle} | ${stage} | ${hook} | ${format} | NightReset | ${creator}` : `${format} test ${a + 1}`;
-    const quality = angle === "Cortisol" ? 2.6 : angle === "3amWakeup" ? 2.2 : 1.1 + r() * 1.4;
-    const fatigue = r() < 0.2;
-    const dailySpend = spendPerDay * (0.3 + r() * 1.4) / nAds * 3;
-    for (let i = launched; i >= 0; i--) {
+    const adName = ok ? `${angle} | ${aware} | ${hook}${a} | ${type} | ${product} | ${strat}` : `${type} test ${a + 1}`;
+    const format: "Video" | "Static" = type === "Static" ? "Static" : "Video";
+    const q = (quality[angle] ?? 0.9) * (stratLift[strat] ?? 1) * (0.75 + r() * 0.5);
+    const fatigue = r() < 0.25;
+    const paused = r() < 0.2;
+    const dailySpend = ((spendPerDay * (0.2 + r() * 1.6)) / nAds) * 3;
+    const hookBase = 0.2 + r() * 0.2, holdBase = 0.1 + r() * 0.2, ctrBase = 0.008 + r() * 0.012;
+    const stopDay = paused ? Math.floor(r() * 10) : 0;
+    for (let i = launched; i >= stopDay; i--) {
       const age = launched - i;
-      const live = r() < 0.9;
-      if (!live) continue;
-      const decay = fatigue ? Math.max(0.35, 1 - age / 45) : 1;
+      if (r() < 0.08) continue;
+      const decay = fatigue ? Math.max(0.3, 1 - age / 40) : 1;
       const spend = dailySpend * (0.7 + r() * 0.6);
-      const impressions = Math.round(spend / (0.018 + r() * 0.01));
-      const clicks = Math.round(impressions * (0.012 + r() * 0.012));
-      const roas = quality * decay * (0.7 + r() * 0.6);
-      const purchaseValue = spend * roas;
+      const impressions = Math.round(spend / (0.016 + r() * 0.012));
+      const linkClicks = Math.round(impressions * ctrBase * (0.8 + r() * 0.4));
+      const ncRev = spend * q * decay * (0.8 + r() * 0.4);
+      const ncPurchases = Math.round(ncRev / 92);
+      const twPurchases = ncPurchases + Math.round(ncPurchases * (0.15 + r() * 0.2));
+      const twRev = ncRev + (twPurchases - ncPurchases) * 79;
+      const metaPurchases = Math.round(twPurchases * (1.1 + r() * 0.4));
+      const uv = Math.round(linkClicks * 0.9);
       out.push({
-        tenantId,
-        date: iso(daysAgo(i)),
-        adId: `${tenantId}-ad-${a}`,
-        adName,
-        adSetId: `as-${Math.floor(a / 4)}`,
-        campaignId: "cmp-1",
-        spend: Math.round(spend * 100) / 100,
-        impressions,
-        clicks,
-        purchases: Math.round(purchaseValue / 86),
-        purchaseValue: Math.round(purchaseValue),
-        thumbstopRate: format === "Static" ? null : 0.22 + r() * 0.2,
-        holdRate: format === "Static" ? null : 0.12 + r() * 0.2,
+        tenantId, date: iso(daysAgo(i)), adId: `${tenantId}-ad-${a}`, adName, adSetId: `as-${Math.floor(a / 4)}`, adSetName: `${angle} | ${aware} | Set ${Math.floor(a / 4)} | ${type} | ${product} | ${strat}`, campaignId: "cmp-1", campaignName: `${product} · Prospecting`,
+        status: paused ? "PAUSED" : "ACTIVE", format, thumbnailUrl: null,
+        spend: Math.round(spend * 100) / 100, impressions, clicks: Math.round(linkClicks * 1.6), linkClicks,
+        metaPurchases, metaRevenue: Math.round(metaPurchases * 88), twPurchases: hasPixel ? twPurchases : 0, twRevenue: hasPixel ? Math.round(twRev) : 0, ncPurchases: hasPixel ? ncPurchases : 0, ncRevenue: hasPixel ? Math.round(ncRev) : 0,
+        plays3s: format === "Video" ? Math.round(impressions * hookBase * (0.9 + r() * 0.2)) : null,
+        thruplays: format === "Video" ? Math.round(impressions * hookBase * holdBase) : null,
+        newVisitors: hasPixel ? Math.round(uv * (0.6 + r() * 0.3)) : null, uniqueVisitors: hasPixel ? uv : null,
         launchedAt: iso(daysAgo(launched)),
       });
     }
@@ -335,9 +343,33 @@ function adSeries(tenantId: string, seed: number, nAds: number, spendPerDay: num
   return out;
 }
 export const demoAds: Record<string, AdDailyInsight[]> = {
-  "t-glowbright": adSeries("t-glowbright", 77, 28, 1550),
-  "t-harborpine": adSeries("t-harborpine", 91, 40, 3100),
-  "t-ridgeline": adSeries("t-ridgeline", 13, 5, 140),
+  "t-glowbright": adSeries("t-glowbright", 77, 34, 1550, "NightReset", true),
+  "t-harborpine": adSeries("t-harborpine", 91, 40, 3100, "SeaSerum", true),
+  "t-ridgeline": adSeries("t-ridgeline", 13, 5, 140, "TrailFlask", false),
+};
+
+// ---- ClickUp briefs (invented) --------------------------------------------
+
+function taskSeries(tenantId: string, seed: number, n: number, product: string): CreativeTask[] {
+  const r = rng(seed);
+  const statuses: CreativeTask["status"][] = ["for production", "ready for edit", "pre-launch review", "revisions", "ready for launch", "completee"];
+  const editors = ["Elin", "Tomas", "Ayo", "Mika"];
+  const out: CreativeTask[] = [];
+  for (let i = 0; i < n; i++) {
+    const briefAgo = Math.floor(r() * 70);
+    const strat = STRATS[Math.floor(r() * STRATS.length)];
+    const status = statuses[Math.floor(r() * statuses.length)];
+    const done = status === "ready for launch" || status === "completee";
+    const readyAgo = done ? Math.max(0, briefAgo - Math.round(3 + r() * 9)) : null;
+    const closedAgo = status === "completee" && readyAgo != null ? Math.max(0, readyAgo - Math.round(r() * 4)) : null;
+    out.push({ tenantId, taskId: `t-${i}`, name: `${HOOK_NAMES[i % HOOK_NAMES.length]} ${TYPES[i % TYPES.length]} | ${product} | ${strat}`, strategist: r() < 0.92 ? strat : null, editors: [editors[Math.floor(r() * editors.length)]], product, kind: i % 6 === 5 ? "Static" : "Video", status, briefDate: iso(daysAgo(briefAgo)), readyDate: readyAgo == null ? null : iso(daysAgo(readyAgo)), closedDate: closedAgo == null ? null : iso(daysAgo(closedAgo)), updatedAt: iso(daysAgo(closedAgo ?? readyAgo ?? Math.max(0, briefAgo - Math.floor(r() * 5)))) });
+  }
+  return out;
+}
+export const demoTasks: Record<string, CreativeTask[]> = {
+  "t-glowbright": taskSeries("t-glowbright", 101, 64, "NightReset"),
+  "t-harborpine": taskSeries("t-harborpine", 103, 90, "SeaSerum"),
+  "t-ridgeline": [],
 };
 
 export const demoIntegrations: Record<string, IntegrationStatus[]> = {
@@ -368,3 +400,77 @@ export const demoNotes: CoachNote[] = [
   { id: "n1", tenantId: "t-glowbright", authorId: DEMO_COACH.id, authorName: "Coach", body: "Agreed on the call: hold spend flat until the Melatonin Hangover angle has 3 iterations live. Revisit B3G3 pricing next week.", createdAt: new Date(Date.now() - 6 * 86400000).toISOString() },
   { id: "n2", tenantId: "t-harborpine", authorId: DEMO_COACH.id, authorName: "Coach", body: "Meta token expired again — walked them through reconnecting. Chargeback rate creeping; asked them to add order tracking emails.", createdAt: new Date(Date.now() - 2 * 86400000).toISOString() },
 ];
+
+// ---- Forecast model (invented) ------------------------------------------
+
+import type { ForecastInputs } from "@/lib/calc/forecast";
+
+function mondayIso(d: Date) {
+  const x = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const day = x.getUTCDay() || 7;
+  x.setUTCDate(x.getUTCDate() - day + 1);
+  return iso(x);
+}
+const fcStart = mondayIso(new Date());
+function preCohorts(n: number, base: number, growth: number) {
+  const out: { weekStart: string; newCustomers: number; regime: "old" | "new" }[] = [];
+  for (let i = n; i >= 1; i--) {
+    const d = new Date(fcStart + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() - 7 * i);
+    out.push({ weekStart: iso(d), newCustomers: Math.round(base * Math.pow(1 + growth, n - i)), regime: i > 8 ? "old" : "new" });
+  }
+  return out;
+}
+
+export const demoForecasts: Record<string, ForecastInputs> = {
+  "t-glowbright": {
+    startDate: fcStart,
+    horizonWeeks: 39,
+    cashOnHand: 142000,
+    cashBuffer: 40000,
+    paypalShare: 0.18,
+    paypalReserve: 0.2,
+    reserveReleaseWeeks: 9,
+    payoutDelayWeeks: 0,
+    adSpendLagWeeks: 5,
+    cardLimit: 250000,
+    cardCashback: 0,
+    refundRate: 0.028,
+    processingRate: 0.035,
+    preCardCharges: [0, 0, 0, 9000, 10200],
+    fixedOpexMonthly: 10100,
+    variableOpexRate: 0.05,
+    extraStrategists: [{ fromWeek: 6, monthly: 4000 }],
+    cycle1Rate: 0.42,
+    retention: 0.7,
+    cycle1RateOld: 0.15,
+    retentionOld: 0.9,
+    poCadenceWeeks: 4,
+    safetyWeeks: 2,
+    depositShare: 0.3,
+    lines: [
+      {
+        id: "line-night", name: "Night Reset", rampStartWeek: 1, dailySpendStart: 1550, dailySpendTarget1: 3000, target1Week: 6, dailySpendTarget2: 5000, target2Week: 14, weeklyGrowthAfter: 0,
+        roasStart: 1.3, roasScale: 1.15, roasScaleWeek: 6, firstOrderAov: 95.4, upsellTakeRate: 0.22, upsellPrice: 29, upsellPoolId: "pool-mag", upsellUnitsPerOrder: 1,
+        fulfillmentNew: 8.1, fulfillmentRebill: 6.5, rebillRevenue: 79, unitsPerNewOrder: { "pool-night": 3.6 }, unitsPerRebillOrder: { "pool-night": 2 }, spendOverrides: {},
+        preCohorts: preCohorts(20, 150, 0.06), longTailWeekly: 1100, longTailDecay: 0.02,
+      },
+      {
+        id: "line-morning", name: "Morning Clarity", rampStartWeek: 8, dailySpendStart: 400, dailySpendTarget1: 1200, target1Week: 16, dailySpendTarget2: 2000, target2Week: 26, weeklyGrowthAfter: 0,
+        roasStart: 1.0, roasScale: 1.05, roasScaleWeek: 14, firstOrderAov: 68, upsellTakeRate: 0, upsellPrice: 0, upsellPoolId: null, upsellUnitsPerOrder: 0,
+        fulfillmentNew: 7.4, fulfillmentRebill: 6.5, rebillRevenue: 44, unitsPerNewOrder: { "pool-morning": 1.5 }, unitsPerRebillOrder: { "pool-morning": 1 }, spendOverrides: {},
+        preCohorts: [], longTailWeekly: 0, longTailDecay: 0.02,
+      },
+    ],
+    pools: [
+      { id: "pool-night", name: "Night Reset bottles (60 ct)", onHand: 4200, landedCost: 3.4, leadWeeks: 5, scheduledInbound: [{ week: 6, units: 10000 }] },
+      { id: "pool-morning", name: "Morning Clarity tubs", onHand: 1850, landedCost: 6.1, leadWeeks: 4, scheduledInbound: [] },
+      { id: "pool-mag", name: "Magnesium add-on bottles", onHand: 1200, landedCost: 4.2, leadWeeks: 4, scheduledInbound: [{ week: 3, units: 3000 }] },
+    ],
+    committed: [
+      { week: 2, amount: 23800, what: "PO-0192 balance · Night Reset 10,000" },
+      { week: 3, amount: 4200, what: "Sea freight + duties on PO-0192" },
+      { week: 2, amount: 8820, what: "Magnesium 3,000 balance" },
+    ],
+  },
+};

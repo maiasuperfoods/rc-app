@@ -38,7 +38,7 @@ export function Shell({ ctx, children }: { ctx: AppContext; children: ReactNode 
           )}
         </div>
       </aside>
-      <main className="px-5 py-6 md:px-10 md:py-8 max-w-[1400px] w-full">{children}</main>
+      <main className="px-5 py-6 md:px-10 md:py-8 max-w-[1400px] w-full min-w-0">{children}</main>
     </div>
   );
 }

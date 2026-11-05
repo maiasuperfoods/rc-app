@@ -28,7 +28,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   );
 }
 
-export function Card({ title, children, className = "", actions, hint }: { title?: ReactNode; children: ReactNode; className?: string; actions?: ReactNode; hint?: string }) {
+export function Card({ title, children, className = "", actions, hint }: { title?: ReactNode; children?: ReactNode; className?: string; actions?: ReactNode; hint?: string }) {
   return (
     <section className={`card p-5 ${className}`}>
       {(title || actions) && (
