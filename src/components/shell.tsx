@@ -5,10 +5,14 @@ import { NavLinks } from "./nav-links";
 import { TenantSwitcher } from "./tenant-switcher";
 import { ThemeToggle, type Theme } from "./theme-toggle";
 import type { AppContext } from "@/lib/data";
+import type { KbNavTree as KbNavTreeData } from "@/lib/kb";
+import { KbNavTree } from "./kb/nav-tree";
+import { KbProgressProvider } from "./kb/progress";
 
-export function Shell({ ctx, theme = "dark", children }: { ctx: AppContext; theme?: Theme; children: ReactNode }) {
+export function Shell({ ctx, theme = "dark", kb, kbDone = [], children }: { ctx: AppContext; theme?: Theme; kb?: KbNavTreeData; kbDone?: string[]; children: ReactNode }) {
   return (
-    <div className="min-h-screen md:grid md:grid-cols-[240px_1fr]">
+    <KbProgressProvider initial={kbDone} demo={ctx.demo}>
+    <div className="min-h-screen md:grid md:grid-cols-[264px_1fr]">
       <aside className="border-b md:border-b-0 md:border-r border-line bg-elev md:sticky md:top-0 md:h-screen flex flex-col">
         <div className="px-5 py-5 border-b border-line">
           <Link href="/" className="flex items-center gap-3">
@@ -26,6 +30,12 @@ export function Shell({ ctx, theme = "dark", children }: { ctx: AppContext; them
         </div>
         <nav className="px-3 py-3 flex-1 overflow-y-auto">
           <NavLinks isCoach={ctx.isCoach} hasTenant={Boolean(ctx.tenant)} />
+          {kb && kb.length > 0 && (
+            <>
+              <div className="label px-3 pt-4 pb-1">Learn</div>
+              <KbNavTree tree={kb} />
+            </>
+          )}
         </nav>
         <div className="px-3 pt-3">
           <ThemeToggle initial={theme} />
@@ -44,5 +54,6 @@ export function Shell({ ctx, theme = "dark", children }: { ctx: AppContext; them
       </aside>
       <main className="px-5 py-6 md:px-10 md:py-8 max-w-[1400px] w-full min-w-0">{children}</main>
     </div>
+    </KbProgressProvider>
   );
 }
