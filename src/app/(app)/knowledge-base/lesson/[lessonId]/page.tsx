@@ -43,7 +43,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
       {lesson.video && (
         <div className="mb-8 rounded-[var(--radius)] overflow-hidden border border-line bg-black shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)]">
-          <video key={lesson.id} src={lesson.video} controls playsInline preload="metadata" controlsList="nodownload" className="w-full aspect-video bg-black" />
+          <video key={lesson.id} src={`${lesson.video}#t=0.5`} controls playsInline preload="metadata" controlsList="nodownload" className="w-full aspect-video bg-black" />
         </div>
       )}
 
