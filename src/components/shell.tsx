@@ -42,6 +42,7 @@ export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false
         <div className="px-3 pt-3">
           <ThemeToggle initial={theme} />
         </div>
+        {!(standalone && ctx.demo) && (
         <div className="px-5 py-4 border-t border-line mt-3 text-xs text-mute">
           <div className="truncate text-dim">{ctx.user.name}</div>
           <div className="truncate">{ctx.user.email}</div>
@@ -53,6 +54,8 @@ export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false
             </form>
           )}
         </div>
+        )}
+        {standalone && ctx.demo && <div className="pb-4" />}
       </aside>
       <main className="px-5 py-6 md:px-10 md:py-8 max-w-[1400px] w-full min-w-0">{children}</main>
     </div>
