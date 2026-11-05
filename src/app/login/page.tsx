@@ -3,6 +3,8 @@ import { isDemoMode } from "@/lib/supabase/server";
 import { Logo } from "@/components/logo";
 import { LoginForm } from "./form";
 import { setDemoRole } from "@/app/actions";
+import { getTheme } from "@/lib/theme";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +39,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   );
 }
 
-function Frame({ children }: { children: React.ReactNode }) {
+async function Frame({ children }: { children: React.ReactNode }) {
+  const theme = await getTheme();
   return (
-    <div className="min-h-screen grid place-items-center px-5">
+    <div className="min-h-screen grid place-items-center px-5 relative">
+      <div className="absolute top-4 right-4"><ThemeToggle initial={theme} compact /></div>
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-3 mb-8 justify-center">
           <Logo className="h-9 w-9" />

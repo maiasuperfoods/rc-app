@@ -3,9 +3,10 @@ import type { ReactNode } from "react";
 import { Logo } from "./logo";
 import { NavLinks } from "./nav-links";
 import { TenantSwitcher } from "./tenant-switcher";
+import { ThemeToggle, type Theme } from "./theme-toggle";
 import type { AppContext } from "@/lib/data";
 
-export function Shell({ ctx, children }: { ctx: AppContext; children: ReactNode }) {
+export function Shell({ ctx, theme = "dark", children }: { ctx: AppContext; theme?: Theme; children: ReactNode }) {
   return (
     <div className="min-h-screen md:grid md:grid-cols-[240px_1fr]">
       <aside className="border-b md:border-b-0 md:border-r border-line bg-elev md:sticky md:top-0 md:h-screen flex flex-col">
@@ -26,7 +27,10 @@ export function Shell({ ctx, children }: { ctx: AppContext; children: ReactNode 
         <nav className="px-3 py-3 flex-1 overflow-y-auto">
           <NavLinks isCoach={ctx.isCoach} hasTenant={Boolean(ctx.tenant)} />
         </nav>
-        <div className="px-5 py-4 border-t border-line text-xs text-mute">
+        <div className="px-3 pt-3">
+          <ThemeToggle initial={theme} />
+        </div>
+        <div className="px-5 py-4 border-t border-line mt-3 text-xs text-mute">
           <div className="truncate text-dim">{ctx.user.name}</div>
           <div className="truncate">{ctx.user.email}</div>
           {ctx.demo ? (

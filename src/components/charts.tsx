@@ -1,10 +1,10 @@
 "use client";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-const gold = "#c9a961";
-const info = "#7fa6d6";
-const good = "#7fb88a";
-const bad = "#d66b6b";
+const gold = "var(--gold)";
+const info = "var(--info)";
+const good = "var(--good)";
+const bad = "var(--bad)";
 const PALETTE = { gold, info, good, bad };
 
 const money = (v: number) => `$${Math.round(v).toLocaleString()}`;

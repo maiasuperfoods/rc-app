@@ -28,6 +28,36 @@
   --radius: 10px;
 }
 
+/* Light version: warm paper neutrals, same gold accent, deeper semantic colours for contrast. */
+:root[data-theme="light"] {
+  --bg: #f6f3ec;
+  --bg-elev: #fbf9f4;
+  --bg-panel: #ffffff;
+  --bg-hover: #efebe1;
+  --line: #e4ded0;
+  --line-strong: #d2cab8;
+  --text: #1c1a16;
+  --text-dim: #5d584e;
+  --text-mute: #8d877a;
+  --gold: #a9852f;
+  --gold-soft: #8a6a1f;
+  --gold-dim: rgba(169, 133, 47, 0.14);
+  --cream: #1c1a16;
+  --good: #2f7d4a;
+  --good-dim: rgba(47, 125, 74, 0.12);
+  --warn: #b0761c;
+  --warn-dim: rgba(176, 118, 28, 0.12);
+  --bad: #b83a3a;
+  --bad-dim: rgba(184, 58, 58, 0.12);
+  --info: #2f64a6;
+  --info-dim: rgba(47, 100, 166, 0.12);
+  color-scheme: light;
+}
+:root[data-theme="light"] .btn-primary { color: #fffdf7; }
+:root[data-theme="light"] .btn-primary:hover { background: var(--gold-soft); }
+:root[data-theme="light"] .card { box-shadow: 0 1px 2px rgba(28, 26, 22, 0.04); }
+:root[data-theme="light"] .hairline { opacity: 0.7; }
+
 @theme inline {
   --color-bg: var(--bg);
   --color-elev: var(--bg-elev);

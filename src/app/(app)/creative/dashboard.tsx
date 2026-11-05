@@ -33,7 +33,7 @@ const fmtM2 = (n: number | null) => (n == null ? "—" : fmtMoney(n, 2));
 const fmtN = (n: number) => Math.round(n).toLocaleString();
 const fmtS = (s: number) => Math.round(s * 100).toString();
 const fmtD = (s: string) => new Date(s + "T00:00:00Z").toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
-const STAGE_COLORS = ["#c9a961", "#7fa6d6", "#7fb88a", "#d9a853", "#d66b6b", "#b48ad6", "#6fc3c9", "#e0945f"];
+const STAGE_COLORS = ["var(--gold)", "var(--info)", "var(--good)", "var(--warn)", "var(--bad)", "#9b6fc4", "#3f9ea6", "#d07f3e"];
 
 function Delta({ cur, prev, dir = 1 }: { cur: number | null | undefined; prev: number | null | undefined; dir?: 1 | -1 }) {
   if (cur == null || prev == null || !prev) return null;
@@ -577,7 +577,7 @@ function TrendChart({ ads, range, rules, keys, colorOf, nameOf, filterOk }: { ad
 
 function ScatterPanel({ items, rules }: { items: Item[]; rules: CreativeRules }) {
   const data = items.filter((x) => x.m.stage !== "untested").map((x) => ({ x: x.m.spend, y: x.m.ncRoas, z: x.m.nc, name: x.ad.taxonomy.name ?? x.ad.adName, stage: x.m.stage }));
-  const col = (s: Stage) => (s === "winner" ? "#7fb88a" : s === "potential" ? "#d9a853" : "#d66b6b");
+  const col = (s: Stage) => (s === "winner" ? "var(--good)" : s === "potential" ? "var(--warn)" : "var(--bad)");
   return (
     <ResponsiveContainer width="100%" height={240}>
       <ScatterChart margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -611,7 +611,7 @@ function KpiChart({ items, range, rules, metric, setMetric, ads, strat, filterOk
           <YAxis width={48} axisLine={false} tickLine={false} tickFormatter={(v) => (metric === "spend" ? `$${v >= 1000 ? `${Math.round(v / 1000)}k` : v}` : metric === "hit" ? `${Math.round(v * 100)}%` : metric === "ncRoas" ? `${Number(v).toFixed(1)}×` : String(v))} />
           <Tooltip formatter={(v) => fmt(Number(v))} />
           {metric === "ncRoas" && <Line type="monotone" dataKey={() => rules.winRoas} name="Winner line" stroke="var(--text-mute)" strokeDasharray="4 4" dot={false} isAnimationActive={false} />}
-          <Line type="monotone" dataKey={metric} name={labels[metric]} stroke="#c9a961" strokeWidth={1.75} dot={false} isAnimationActive={false} />
+          <Line type="monotone" dataKey={metric} name={labels[metric]} stroke="var(--gold)" strokeWidth={1.75} dot={false} isAnimationActive={false} />
         </LineChart>
       </ResponsiveContainer>
     </Card>
