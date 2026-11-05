@@ -9,31 +9,33 @@ import type { KbNavTree as KbNavTreeData } from "@/lib/kb";
 import { KbNavTree } from "./kb/nav-tree";
 import { KbProgressProvider } from "./kb/progress";
 
-export function Shell({ ctx, theme = "dark", kb, kbDone = [], children }: { ctx: AppContext; theme?: Theme; kb?: KbNavTreeData; kbDone?: string[]; children: ReactNode }) {
+export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false, children }: { ctx: AppContext; theme?: Theme; kb?: KbNavTreeData; kbDone?: string[]; standalone?: boolean; children: ReactNode }) {
   return (
     <KbProgressProvider initial={kbDone} demo={ctx.demo}>
     <div className="min-h-screen md:grid md:grid-cols-[264px_1fr]">
       <aside className="border-b md:border-b-0 md:border-r border-line bg-elev md:sticky md:top-0 md:h-screen flex flex-col">
         <div className="px-5 py-5 border-b border-line">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href={standalone ? "/knowledge-base" : "/"} className="flex items-center gap-3">
             <Logo className="h-8 w-8" />
             <div className="leading-tight">
               <div className="text-[0.95rem] font-serif text-cream">
                 Ren<span className="text-gold italic">ai</span>ssance
               </div>
-              <div className="text-[0.6rem] tracking-[0.2em] text-dim uppercase">Commerce</div>
+              <div className="text-[0.6rem] tracking-[0.2em] text-dim uppercase">{standalone ? "Knowledge Base" : "Commerce"}</div>
             </div>
           </Link>
         </div>
-        <div className="px-3 py-3 border-b border-line">
-          <TenantSwitcher tenants={ctx.tenants} activeId={ctx.tenant?.id ?? null} />
-        </div>
+        {!standalone && (
+          <div className="px-3 py-3 border-b border-line">
+            <TenantSwitcher tenants={ctx.tenants} activeId={ctx.tenant?.id ?? null} />
+          </div>
+        )}
         <nav className="px-3 py-3 flex-1 overflow-y-auto">
-          <NavLinks isCoach={ctx.isCoach} hasTenant={Boolean(ctx.tenant)} />
+          {!standalone && <NavLinks isCoach={ctx.isCoach} hasTenant={Boolean(ctx.tenant)} />}
           {kb && kb.length > 0 && (
             <>
-              <div className="label px-3 pt-4 pb-1">Learn</div>
-              <KbNavTree tree={kb} />
+              {!standalone && <div className="label px-3 pt-4 pb-1">Learn</div>}
+              <KbNavTree tree={kb} alwaysOpen={standalone} />
             </>
           )}
         </nav>

@@ -10,6 +10,9 @@ import { isDemoMode, supabaseServer } from "@/lib/supabase/server";
  * KB_API_URL + KB_API_TOKEN (server-only env), which returns the same shapes.
  */
 
+/** True on the standalone Knowledge Base deployment (e.g. rc-knowledge-base.vercel.app). */
+export const isKbStandalone = () => process.env.KB_STANDALONE === "true";
+
 export interface KbCategory { id: string; title: string; description: string; image: string | null; order: number }
 export interface KbChapter { id: string; category_id: string; title: string; icon: string | null; order: number }
 export interface KbLessonRef { id: string; chapter_id: string; title: string; order: number; has_video: boolean }

@@ -48,13 +48,13 @@ function locate(tree: KbNavTree, path: string) {
   return { cat: parts[1] ?? null, ch: parts[2] ?? null, lesson: null };
 }
 
-export function KbNavTree({ tree }: { tree: KbNavTree }) {
+export function KbNavTree({ tree, alwaysOpen = false }: { tree: KbNavTree; alwaysOpen?: boolean }) {
   const path = usePathname();
   const here = useMemo(() => locate(tree, path), [tree, path]);
   const inKb = here !== null;
 
   const [open, setOpen] = useState<Record<string, boolean>>({});
-  const [rootOpen, setRootOpen] = useState(inKb);
+  const [rootOpen, setRootOpen] = useState(inKb || alwaysOpen);
 
   // Opening a page opens its branch; manual toggles elsewhere are kept.
   useEffect(() => {
