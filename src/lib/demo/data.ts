@@ -153,7 +153,7 @@ export const demoBrandBooks: Record<string, BrandBook> = {
       },
     ],
     angles: [
-      { id: "an1", name: "It's not insomnia, it's cortisol", avatarId: "av1", headlines: ["Why you wake up at 3am (and it's not stress)", "I stopped taking melatonin and finally slept through the night"], status: "winner" },
+      { id: "an1", name: "It's not insomnia, it's a racing mind", avatarId: "av1", headlines: ["Why you wake up at 3am (and it's not stress)", "I stopped taking melatonin and finally slept through the night"], status: "winner" },
       { id: "an2", name: "Melatonin hangover", avatarId: "av1", headlines: ["Melatonin made me groggy for 2 years. This didn't."], status: "testing" },
       { id: "an3", name: "Deep sleep score", avatarId: "av2", headlines: ["My deep sleep went from 48 min to 1h52. Here's the stack."], status: "testing" },
       { id: "an4", name: "Doctor's wife", avatarId: "av1", headlines: ["My husband's a sleep doctor. This is what he actually gives me."], status: "untested" },
@@ -288,7 +288,7 @@ export const demoCohorts: Record<string, CohortRow[]> = {
 // ---- Ads ----------------------------------------------------------------
 // Ad names follow the SOP: Angle | Awareness | Name | Type | Product | Strategist
 
-const ANGLES = ["CRT", "MEL", "DSS", "3AM", "DRW"]; // cortisol, melatonin hangover, deep-sleep score, 3am wake-up, doctor's wife
+const ANGLES = ["RMD", "MEL", "DSS", "3AM", "DRW"]; // racing mind, melatonin hangover, deep-sleep score, 3am wake-up, doctor's wife
 const AWARE = ["U", "PA", "SA", "PCTA", "MA"];
 const TYPES = ["UGC", "VSL", "AI UGC", "AI Authority", "AI Animation", "Static"];
 const STRATS = ["JO", "PRI", "MAR", "STU"];
@@ -297,7 +297,7 @@ const HOOK_NAMES = ["WakeAt3", "MelatoninFog", "ScoreScreenshot", "HusbandDoctor
 function adSeries(tenantId: string, seed: number, nAds: number, spendPerDay: number, product: string, hasPixel: boolean): AdDailyInsight[] {
   const r = rng(seed);
   const out: AdDailyInsight[] = [];
-  const quality: Record<string, number> = { CRT: 1.25, "3AM": 1.1, MEL: 0.95, DSS: 0.8, DRW: 0.7 };
+  const quality: Record<string, number> = { RMD: 1.25, "3AM": 1.1, MEL: 0.95, DSS: 0.8, DRW: 0.7 };
   const stratLift: Record<string, number> = { JO: 1.1, PRI: 0.95, MAR: 1.05, STU: 0.85 };
   for (let a = 0; a < nAds; a++) {
     const launched = 75 - Math.floor(r() * 73);

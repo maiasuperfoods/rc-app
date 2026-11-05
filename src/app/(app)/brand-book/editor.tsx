@@ -22,7 +22,7 @@ export function BrandBookEditor({ book: initial, products, tenantName }: { book:
   const [book, setBook] = useState<BrandBook>(initial);
   const [pending, start] = useTransition();
   const [tab, setTab] = useState<"core" | "avatars" | "angles" | "proof" | "rails">("core");
-  const [sample, setSample] = useState("CRT | PA | WakeAt3 | UGC | NightReset | JO");
+  const [sample, setSample] = useState("RMD | PA | WakeAt3 | UGC | NightReset | JO");
   const grade = readingGrade(book.mechanism);
   const fields = parseConvention(book.adNamingConvention);
   const sampleOk = sample.split("|").length >= fields.length && fields.length > 0;
