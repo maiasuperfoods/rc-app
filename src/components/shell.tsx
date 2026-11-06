@@ -28,7 +28,7 @@ export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false
         </div>
         {!standalone && (
           <div className="px-3 py-3 border-b border-line">
-            <TenantSwitcher tenants={ctx.tenants} activeId={ctx.tenant?.id ?? null} />
+            <TenantSwitcher tenants={ctx.tenants} activeId={ctx.tenant?.id ?? null} coach={ctx.isCoach} />
           </div>
         )}
         <nav className="px-3 py-3 flex-1 overflow-y-auto">

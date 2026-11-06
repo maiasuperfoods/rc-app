@@ -39,7 +39,7 @@ export async function getContext(opts: { requireTenant?: boolean } = {}): Promis
   const c = await cookies();
   const wanted = c.get(TENANT_COOKIE)?.value;
   const tenant = tenants.find((t) => t.id === wanted) ?? tenants[0] ?? null;
-  if (opts.requireTenant && !tenant) redirect("/onboarding");
+  if (opts.requireTenant && !tenant) redirect(isCoach ? "/admin" : "/onboarding");
   const demo = isDemoMode();
   const canEdit = Boolean(tenant) && (demo || memberships.some((m) => m.tenantId === tenant!.id));
   return { db, user, memberships, isCoach, tenants, tenant, demo, canEdit };

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getContext } from "@/lib/data";
 import { Wizard } from "./wizard";
 import { Logo } from "@/components/logo";
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ new?: string }> }) {
   const sp = await searchParams;
   const ctx = await getContext();
+  if (!ctx.demo && ctx.isCoach && !ctx.tenant) redirect("/admin");
   const startNew = sp.new === "1" || !ctx.tenant;
   const t = startNew ? null : ctx.tenant;
   const [integrations, skus, offers, costs, book] = t

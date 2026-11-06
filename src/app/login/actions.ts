@@ -34,7 +34,7 @@ export async function signInWithPassword(_: unknown, form: FormData): Promise<{ 
   }
   const { error } = await sb.auth.verifyOtp({ token_hash: coach.token_hash, type: coach.type as EmailOtpType });
   if (error) return { error: "Could not open your session. Try again." };
-  redirect(coach.must_change ? "/auth/set-password?first=1" : "/");
+  redirect(coach.must_change ? "/auth/set-password?first=1" : "/admin");
 }
 
 export async function setPassword(_: unknown, form: FormData): Promise<{ error?: string }> {

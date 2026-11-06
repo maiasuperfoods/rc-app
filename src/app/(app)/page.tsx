@@ -10,7 +10,7 @@ const STAGE_LABEL = { grind: "Grind", validation: "Validation", acceleration: "A
 
 export default async function HomePage() {
   const ctx = await getContext();
-  if (!ctx.tenant) redirect("/onboarding");
+  if (!ctx.tenant) redirect(ctx.isCoach ? "/admin" : "/onboarding");
   const t = ctx.tenant;
   if (!t.onboardingComplete && !ctx.isCoach) redirect("/onboarding");
   const s = await buildSnapshot(ctx.db, t);

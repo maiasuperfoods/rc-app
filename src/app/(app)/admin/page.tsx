@@ -10,9 +10,22 @@ export default async function AdminPage() {
   const snaps = await Promise.all(ctx.tenants.map((t) => buildSnapshot(ctx.db, t)));
   const red = snaps.reduce((a, s) => a + s.flags.filter((f) => f.severity === "red").length, 0);
   const broken = snaps.reduce((a, s) => a + s.integrations.filter((i) => i.lastError).length, 0);
+  if (ctx.tenants.length === 0) {
+    return (
+      <>
+        <PageHeader title="All students" subtitle="No brands yet. Add the first student and their brand, then it shows up here and in the brand switcher." />
+        <Card>
+          <div className="p-8 text-center">
+            <p className="text-dim text-sm mb-4">You have full access to every brand. Brands are created when you invite a student.</p>
+            <Link href="/admin/access" className="btn btn-primary">Add a brand and invite its student</Link>
+          </div>
+        </Card>
+      </>
+    );
+  }
   return (
     <>
-      <PageHeader title="All students" subtitle={`${ctx.tenants.length} brands · ${red} red flags · ${broken} connections needing attention. Click a brand for the call-prep page.`} />
+      <PageHeader title="All students" subtitle={`${ctx.tenants.length} brands · ${red} red flags · ${broken} connections needing attention. Click a brand for the call-prep page, or pick one in the sidebar to browse it as the student sees it.`} />
       <Card>
         <div className="overflow-x-auto">
           <table className="table">

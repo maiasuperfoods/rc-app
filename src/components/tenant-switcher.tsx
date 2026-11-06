@@ -4,10 +4,10 @@ import { useTransition } from "react";
 import type { Tenant } from "@/lib/types";
 import { switchTenant } from "@/app/actions";
 
-export function TenantSwitcher({ tenants, activeId }: { tenants: Tenant[]; activeId: string | null }) {
+export function TenantSwitcher({ tenants, activeId, coach = false }: { tenants: Tenant[]; activeId: string | null; coach?: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  if (tenants.length === 0) return <div className="text-xs text-mute px-2">No brand yet</div>;
+  if (tenants.length === 0) return <div className="text-xs text-mute px-2">{coach ? "No brands yet" : "No brand yet"}</div>;
   return (
     <select
       className="input text-sm"
@@ -16,7 +16,7 @@ export function TenantSwitcher({ tenants, activeId }: { tenants: Tenant[]; activ
       onChange={(e) => {
         const v = e.target.value;
         if (v === "__new") {
-          router.push("/onboarding?new=1");
+          router.push(coach ? "/admin/access" : "/onboarding?new=1");
           return;
         }
         start(async () => {
@@ -30,7 +30,7 @@ export function TenantSwitcher({ tenants, activeId }: { tenants: Tenant[]; activ
           {t.name}
         </option>
       ))}
-      <option value="__new">+ Add another brand</option>
+      <option value="__new">{coach ? "+ Add a brand" : "+ Add another brand"}</option>
     </select>
   );
 }
