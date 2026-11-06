@@ -4,14 +4,14 @@ import { adminConfigured, getPpuList, isResourcesAdmin, resHref } from "@/lib/re
 import { Crumbs } from "@/components/kb/bits";
 import { AdminBar } from "@/components/resources/admin-bar";
 
-export const metadata = { title: "Post-Purchase Vault · Knowledge Base" };
+export const metadata = { title: "Post-Purchase Vault · Resources" };
 
 export default async function PostPurchaseVault() {
   const [list, isAdmin] = await Promise.all([getPpuList(), isResourcesAdmin()]);
   return (
     <>
       <div className="flex items-start justify-between gap-3">
-        <Crumbs items={[{ label: "Knowledge Base", href: "/knowledge-base" }, { label: "Resources", href: resHref.hub }, { label: "Post-Purchase Vault" }]} />
+        <Crumbs items={[{ label: "Resources", href: resHref.hub }, { label: "Post-Purchase Vault" }]} />
         <AdminBar isAdmin={isAdmin} configured={adminConfigured()} />
       </div>
 

@@ -3,7 +3,7 @@ import { ArrowUpRight, Newspaper, Repeat } from "lucide-react";
 import { getPpuList, getPresaleList, resHref } from "@/lib/resources";
 import { Crumbs, KbTitle } from "@/components/kb/bits";
 
-export const metadata = { title: "Resources · Knowledge Base" };
+export const metadata = { title: "Resources · Renaissance Commerce" };
 
 export default async function ResourcesHub() {
   const [pre, ppu] = await Promise.all([getPresaleList(), getPpuList()]);
@@ -27,7 +27,7 @@ export default async function ResourcesHub() {
   ];
   return (
     <div className="max-w-5xl">
-      <Crumbs items={[{ label: "Knowledge Base", href: "/knowledge-base" }, { label: "Resources" }]} />
+      <Crumbs items={[{ label: "Resources" }]} />
       <KbTitle title="Resources" sub="Swipe files and teardowns to study alongside the course." />
       <div className="hairline mb-8" />
       <div className="grid gap-5 md:grid-cols-2">

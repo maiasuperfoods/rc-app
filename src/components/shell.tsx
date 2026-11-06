@@ -8,6 +8,7 @@ import type { AppContext } from "@/lib/data";
 import type { KbNavTree as KbNavTreeData } from "@/lib/kb";
 import { KbNavTree } from "./kb/nav-tree";
 import { KbProgressProvider } from "./kb/progress";
+import { ResourcesNav } from "./resources/nav";
 
 export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false, children }: { ctx: AppContext; theme?: Theme; kb?: KbNavTreeData; kbDone?: string[]; standalone?: boolean; children: ReactNode }) {
   return (
@@ -34,10 +35,12 @@ export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false
           {!standalone && <NavLinks isCoach={ctx.isCoach} hasTenant={Boolean(ctx.tenant)} />}
           {kb && kb.length > 0 && (
             <>
-              {!standalone && <div className="label px-3 pt-4 pb-1">Learn</div>}
+              <div className={`label px-3 pb-1 ${standalone ? "pt-1" : "pt-4"}`}>Learn</div>
               <KbNavTree tree={kb} alwaysOpen={standalone} />
             </>
           )}
+          <div className="label px-3 pt-4 pb-1">Resources</div>
+          <ResourcesNav />
         </nav>
         <div className="px-3 pt-3">
           <ThemeToggle initial={theme} />

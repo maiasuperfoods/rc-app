@@ -4,7 +4,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ImageIcon, Loader2, Trash2, Upload, Video } from "lucide-react";
-import { ppuDeleteMedia, ppuRegisterMedia, ppuUploadUrl } from "@/app/(app)/knowledge-base/resources/actions";
+import { ppuDeleteMedia, ppuRegisterMedia, ppuUploadUrl } from "@/app/(app)/resources/actions";
 import { MAX_UPLOAD_BYTES, uploadToSignedUrl } from "./upload";
 import { Lightbox } from "./screenshots";
 

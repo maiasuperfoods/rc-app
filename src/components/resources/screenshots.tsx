@@ -4,7 +4,7 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ImageIcon, Link2, Loader2, Trash2, Upload, X } from "lucide-react";
-import { presaleDeleteShot, presaleRegisterShot, presaleShotFromUrl, presaleUploadUrl } from "@/app/(app)/knowledge-base/resources/actions";
+import { presaleDeleteShot, presaleRegisterShot, presaleShotFromUrl, presaleUploadUrl } from "@/app/(app)/resources/actions";
 import { MAX_UPLOAD_BYTES, uploadToSignedUrl } from "./upload";
 
 type Shot = { id: string; url: string | null };

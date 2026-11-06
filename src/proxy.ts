@@ -6,10 +6,10 @@ import { NextResponse, type NextRequest } from "next/server";
  * users to /login. Skipped entirely in demo mode.
  */
 export async function proxy(request: NextRequest) {
-  // Standalone Knowledge Base deployment: only the course (and sign-in) is served; everything else lands on it.
+  // Standalone Knowledge Base deployment: only the course, resources and sign-in are served; everything else lands on the course.
   if (process.env.KB_STANDALONE === "true") {
     const p = request.nextUrl.pathname;
-    const allowed = p.startsWith("/knowledge-base") || p.startsWith("/login") || p.startsWith("/auth") || /\.[a-z0-9]+$/i.test(p);
+    const allowed = p.startsWith("/knowledge-base") || p.startsWith("/resources") || p.startsWith("/login") || p.startsWith("/auth") || /\.[a-z0-9]+$/i.test(p);
     if (!allowed) {
       const url = request.nextUrl.clone();
       url.pathname = "/knowledge-base";

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ExternalLink, Loader2, Pencil, Save, Sparkles, Trash2, X } from "lucide-react";
-import { analyzeAndSaveDraft, deletePresale, setPresaleStatus, updatePresale } from "@/app/(app)/knowledge-base/resources/actions";
+import { analyzeAndSaveDraft, deletePresale, setPresaleStatus, updatePresale } from "@/app/(app)/resources/actions";
 import type { PresaleBrand, PresaleListItem } from "@/lib/resources";
 
 const STYLES = ["Personal Story", "Exposé", "Listicle", "Hybrid"];
@@ -87,7 +87,7 @@ function Editor({ brand, onClose }: { brand: PresaleBrand; onClose: () => void }
         ) : (
           <button type="button" className="btn btn-ghost" disabled={pending} onClick={() => act(() => setPresaleStatus(brand.id, "draft", patch()), "Moved back to drafts.", true)}><EyeOff size={14} /> Unpublish</button>
         )}
-        <Link href={`/knowledge-base/resources/pre-sales/${brand.slug}`} className="btn btn-ghost"><ExternalLink size={14} /> Open page</Link>
+        <Link href={`/resources/pre-sales/${brand.slug}`} className="btn btn-ghost"><ExternalLink size={14} /> Open page</Link>
         <button type="button" className="btn ml-auto text-bad hover:bg-bad-dim" disabled={pending} onClick={() => confirm(`Delete ${brand.brand_name}? This removes its screenshots too.`) && act(() => deletePresale(brand.id), "Deleted.", true)}><Trash2 size={14} /> Delete</button>
       </div>
     </section>

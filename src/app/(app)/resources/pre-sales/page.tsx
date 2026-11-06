@@ -5,7 +5,7 @@ import { PRESALE_STYLES, adminConfigured, getPresaleList, isResourcesAdmin, resH
 import { Crumbs } from "@/components/kb/bits";
 import { AdminBar } from "@/components/resources/admin-bar";
 
-export const metadata = { title: "Pre-Sales Vault · Knowledge Base" };
+export const metadata = { title: "Pre-Sales Vault · Resources" };
 
 const QUOTES = [
   { author: "Dan Kennedy", quote: "Model what works." },
@@ -28,7 +28,7 @@ export default async function PreSalesVault({ searchParams }: { searchParams: Pr
   return (
     <>
       <div className="flex items-start justify-between gap-3">
-        <Crumbs items={[{ label: "Knowledge Base", href: "/knowledge-base" }, { label: "Resources", href: resHref.hub }, { label: "Pre-Sales Vault" }]} />
+        <Crumbs items={[{ label: "Resources", href: resHref.hub }, { label: "Pre-Sales Vault" }]} />
         <div className="flex gap-2 shrink-0">
           {isAdmin && <Link href={resHref.presaleAdmin} className="btn btn-secondary !py-1.5 !text-xs"><Settings2 size={13} /> Admin panel</Link>}
           <AdminBar isAdmin={isAdmin} configured={adminConfigured()} />

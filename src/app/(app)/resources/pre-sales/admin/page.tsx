@@ -4,14 +4,14 @@ import { Crumbs, KbTitle } from "@/components/kb/bits";
 import { AdminBar } from "@/components/resources/admin-bar";
 import { PresaleAdmin } from "@/components/resources/presale-admin";
 
-export const metadata = { title: "Pre-Sales Vault admin · Knowledge Base" };
+export const metadata = { title: "Pre-Sales Vault admin · Resources" };
 // Scraping + AI analysis can take a while; server actions on this page inherit this limit.
 export const maxDuration = 120;
 
 export default async function PresaleAdminPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
   const { edit } = await searchParams;
   const isAdmin = await isResourcesAdmin();
-  const crumbs = <Crumbs items={[{ label: "Knowledge Base", href: "/knowledge-base" }, { label: "Resources", href: resHref.hub }, { label: "Pre-Sales Vault", href: resHref.presale }, { label: "Admin" }]} />;
+  const crumbs = <Crumbs items={[{ label: "Resources", href: resHref.hub }, { label: "Pre-Sales Vault", href: resHref.presale }, { label: "Admin" }]} />;
 
   if (!isAdmin) {
     return (

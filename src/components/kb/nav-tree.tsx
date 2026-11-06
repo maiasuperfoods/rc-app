@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { ChevronDown, GraduationCap, Newspaper, Repeat } from "lucide-react";
+import { ChevronDown, GraduationCap } from "lucide-react";
 import type { KbNavTree } from "@/lib/kb";
 import { DoneDot } from "./progress";
 
@@ -41,18 +41,12 @@ function Chevron({ open, onClick, label }: { open: boolean; onClick: () => void;
 function locate(tree: KbNavTree, path: string) {
   const parts = path.split("/").filter(Boolean); // knowledge-base, ...
   if (parts[0] !== "knowledge-base") return null;
-  if (parts[1] === "resources") return { cat: "resources", ch: null, lesson: null, res: parts[2] ?? "" };
   if (parts[1] === "lesson" && parts[2]) {
     for (const cat of tree) for (const ch of cat.chapters) if (ch.lessons.some((l) => l.id === parts[2])) return { cat: cat.id, ch: ch.id, lesson: parts[2] };
     return { cat: null, ch: null, lesson: null };
   }
   return { cat: parts[1] ?? null, ch: parts[2] ?? null, lesson: null };
 }
-
-const RESOURCES = [
-  { slug: "pre-sales", label: "Pre-Sales Vault", icon: Newspaper },
-  { slug: "post-purchase", label: "Post-Purchase Vault", icon: Repeat },
-];
 
 export function KbNavTree({ tree, alwaysOpen = false }: { tree: KbNavTree; alwaysOpen?: boolean }) {
   const path = usePathname();
@@ -140,40 +134,6 @@ export function KbNavTree({ tree, alwaysOpen = false }: { tree: KbNavTree; alway
               </li>
             );
           })}
-          <li className="pt-2 mt-1 border-t border-line/70">
-            {(() => {
-              const resOpen = Boolean(open.resources);
-              const resHub = here?.cat === "resources" && !("res" in here && here.res);
-              return (
-                <>
-                  <div className={`flex items-center gap-1 rounded-md pr-1 ${resHub ? "bg-gold-dim" : "hover:bg-hover"}`}>
-                    <Chevron open={resOpen} onClick={() => flip("resources")} label="Resources" />
-                    <Link href="/knowledge-base/resources" className={`flex-1 py-1.5 text-[0.82rem] leading-snug ${resHub ? "text-gold-soft" : here?.cat === "resources" ? "text-ink" : "text-dim hover:text-ink"}`}>
-                      Resources
-                    </Link>
-                  </div>
-                  <Collapse open={resOpen}>
-                    <ul className="ml-3 border-l border-line pl-1.5 py-0.5 space-y-px">
-                      {RESOURCES.map((r) => {
-                        const active = here && "res" in here && here.res === r.slug;
-                        return (
-                          <li key={r.slug}>
-                            <Link
-                              href={`/knowledge-base/resources/${r.slug}`}
-                              className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[0.8rem] transition-colors ${active ? "bg-gold-dim text-gold-soft" : "text-dim hover:text-ink hover:bg-hover"}`}
-                            >
-                              <r.icon size={13} strokeWidth={1.75} className="shrink-0" />
-                              {r.label}
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </Collapse>
-                </>
-              );
-            })()}
-          </li>
         </ul>
       </Collapse>
     </div>

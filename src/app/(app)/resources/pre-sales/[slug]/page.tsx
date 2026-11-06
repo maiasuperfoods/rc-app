@@ -26,7 +26,7 @@ export default async function PresaleBrandPage({ params }: { params: Promise<{ s
   return (
     <div className="max-w-6xl">
       <div className="flex items-start justify-between gap-3">
-        <Crumbs items={[{ label: "Knowledge Base", href: "/knowledge-base" }, { label: "Resources", href: resHref.hub }, { label: "Pre-Sales Vault", href: resHref.presale }, { label: b.brand_name }]} />
+        <Crumbs items={[{ label: "Resources", href: resHref.hub }, { label: "Pre-Sales Vault", href: resHref.presale }, { label: b.brand_name }]} />
         <div className="flex gap-2 shrink-0">
           {isAdmin && <Link href={`${resHref.presaleAdmin}?edit=${b.slug}`} className="btn btn-secondary !py-1.5 !text-xs"><Settings2 size={13} /> Edit</Link>}
           <AdminBar isAdmin={isAdmin} configured={adminConfigured()} />

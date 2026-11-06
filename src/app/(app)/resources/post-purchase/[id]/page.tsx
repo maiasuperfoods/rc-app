@@ -35,7 +35,7 @@ export default async function PpuBrandPage({ params }: { params: Promise<{ id: s
   return (
     <div className="max-w-5xl">
       <div className="flex items-start justify-between gap-3">
-        <Crumbs items={[{ label: "Knowledge Base", href: "/knowledge-base" }, { label: "Resources", href: resHref.hub }, { label: "Post-Purchase Vault", href: resHref.ppu }, { label: b.brand_name }]} />
+        <Crumbs items={[{ label: "Resources", href: resHref.hub }, { label: "Post-Purchase Vault", href: resHref.ppu }, { label: b.brand_name }]} />
         <AdminBar isAdmin={isAdmin} configured={adminConfigured()} />
       </div>
 

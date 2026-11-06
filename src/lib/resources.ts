@@ -132,13 +132,13 @@ export async function isResourcesAdmin() {
 }
 
 export const resHref = {
-  hub: "/knowledge-base/resources",
-  presale: "/knowledge-base/resources/pre-sales",
-  presaleStyle: (style: string) => `/knowledge-base/resources/pre-sales?style=${encodeURIComponent(style)}`,
-  presaleBrand: (slug: string) => `/knowledge-base/resources/pre-sales/${slug}`,
-  presaleAdmin: "/knowledge-base/resources/pre-sales/admin",
-  ppu: "/knowledge-base/resources/post-purchase",
-  ppuBrand: (id: string) => `/knowledge-base/resources/post-purchase/${id}`,
+  hub: "/resources",
+  presale: "/resources/pre-sales",
+  presaleStyle: (style: string) => `/resources/pre-sales?style=${encodeURIComponent(style)}`,
+  presaleBrand: (slug: string) => `/resources/pre-sales/${slug}`,
+  presaleAdmin: "/resources/pre-sales/admin",
+  ppu: "/resources/post-purchase",
+  ppuBrand: (id: string) => `/resources/post-purchase/${id}`,
 };
 
 export const styleTone: Record<string, "gold" | "bad" | "info" | "warn" | "mute"> = {

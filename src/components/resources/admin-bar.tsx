@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, LockOpen, LogOut } from "lucide-react";
-import { lockResourcesAdmin, unlockResourcesAdmin } from "@/app/(app)/knowledge-base/resources/actions";
+import { lockResourcesAdmin, unlockResourcesAdmin } from "@/app/(app)/resources/actions";
 
 /** Small admin toggle shown on resource pages: unlock with the admin password, or lock again. */
 export function AdminBar({ isAdmin, configured }: { isAdmin: boolean; configured: boolean }) {
