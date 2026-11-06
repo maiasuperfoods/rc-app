@@ -13,7 +13,7 @@ import { isDemoMode, supabaseServer } from "@/lib/supabase/server";
 /** True on the standalone Knowledge Base deployment (e.g. rc-knowledge-base.vercel.app). */
 export const isKbStandalone = () => process.env.KB_STANDALONE === "true";
 
-export interface KbCategory { id: string; title: string; description: string; image: string | null; order: number }
+export interface KbCategory { id: string; title: string; description: string; image: string | null; image_path?: string | null; order: number }
 export interface KbChapter { id: string; category_id: string; title: string; icon: string | null; order: number }
 export interface KbLessonRef { id: string; chapter_id: string; title: string; order: number; has_video: boolean }
 export interface KbLesson { id: string; chapter_id: string; title: string; content: string; video: string | null; order: number }
@@ -55,7 +55,7 @@ export const getKbTree = cache(async (): Promise<KbTree> => {
         const { data } = await sb.storage.from("kb-media").createSignedUrl(c.image_path, SIGN_TTL);
         image = data?.signedUrl ?? image;
       }
-      return { id: c.id, title: c.title, description: c.description ?? "", image, order: c.order };
+      return { id: c.id, title: c.title, description: c.description ?? "", image, image_path: c.image_path, order: c.order };
     }),
   );
   const lessons = (les.data ?? []).map((l) => ({ id: l.id, chapter_id: l.chapter_id, title: l.title, order: l.order, has_video: Boolean(l.video_url) }));

@@ -9,7 +9,7 @@ export async function proxy(request: NextRequest) {
   // Standalone Knowledge Base deployment: only the course, resources and sign-in are served; everything else lands on the course.
   if (process.env.KB_STANDALONE === "true") {
     const p = request.nextUrl.pathname;
-    const allowed = p.startsWith("/knowledge-base") || p.startsWith("/resources") || p.startsWith("/login") || p.startsWith("/auth") || /\.[a-z0-9]+$/i.test(p);
+    const allowed = p.startsWith("/knowledge-base") || p.startsWith("/resources") || p.startsWith("/api/media") || p.startsWith("/login") || p.startsWith("/auth") || /\.[a-z0-9]+$/i.test(p);
     if (!allowed) {
       const url = request.nextUrl.clone();
       url.pathname = "/knowledge-base";
@@ -34,7 +34,7 @@ export async function proxy(request: NextRequest) {
   });
   const { data } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
-  const isPublic = path.startsWith("/login") || path.startsWith("/auth") || path.startsWith("/api/webhooks");
+  const isPublic = path.startsWith("/login") || path.startsWith("/auth") || path.startsWith("/api/webhooks") || path.startsWith("/api/media");
   if (!data.user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

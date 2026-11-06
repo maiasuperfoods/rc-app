@@ -26,6 +26,7 @@ export interface PresaleListItem {
   created_at: string;
   technique_count: number;
   thumbnail: string | null;
+  thumbnail_path?: string | null;
 }
 
 export interface SectionBreakdown { headline?: string; lead?: string; body?: string; bridge?: string; socialProof?: string; cta?: string }
@@ -34,7 +35,7 @@ export interface DeepBreakdown {
   readerJourney?: { title: string; description: string }[];
   deepDive?: { type: "framework" | "micro-technique"; name: string; description: string }[];
 }
-export interface PresaleBrand extends Omit<PresaleListItem, "technique_count" | "thumbnail"> {
+export interface PresaleBrand extends Omit<PresaleListItem, "technique_count" | "thumbnail" | "thumbnail_path"> {
   description: string;
   target_avatar: string;
   core_price: string;
@@ -42,7 +43,7 @@ export interface PresaleBrand extends Omit<PresaleListItem, "technique_count" | 
   section_breakdown: SectionBreakdown;
   deep_copywriting_breakdown: DeepBreakdown;
   source_url: string;
-  screenshots: { id: string; url: string | null }[];
+  screenshots: { id: string; url: string | null; path?: string | null }[];
 }
 
 export interface PpuListItem {
@@ -68,7 +69,7 @@ export interface PpuUpsell {
   psych_breakdown: { scriptStructure?: unknown[]; levers?: { name: string; quote?: string; explanation: string }[]; whyItWorks?: string };
   is_text_only: boolean;
   videos: { id: string; url: string | null }[];
-  screenshots: { id: string; url: string | null }[];
+  screenshots: { id: string; url: string | null; path?: string | null }[];
 }
 export interface PpuBrand extends Omit<PpuListItem, "upsell_count" | "text_only"> {
   upsells: PpuUpsell[];

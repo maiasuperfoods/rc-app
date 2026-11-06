@@ -2,6 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Course art and vault screenshots are served from /api/media (stable, CDN-cached) and resized here.
+  images: {
+    localPatterns: [{ pathname: "/api/media/**", search: "" }],
+    qualities: [60, 75],
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2592000,
+  },
   assetPrefix: process.env.ASSET_PREFIX || undefined,
   // Resources moved out of the Knowledge Base into their own section.
   async redirects() {

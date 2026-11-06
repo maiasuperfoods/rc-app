@@ -1,13 +1,15 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
+import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
+import { mediaSrc } from "@/lib/media";
 import { useRouter } from "next/navigation";
 import { ImageIcon, Link2, Loader2, Trash2, Upload, X } from "lucide-react";
 import { presaleDeleteShot, presaleRegisterShot, presaleShotFromUrl, presaleUploadUrl } from "@/app/(app)/resources/actions";
 import { MAX_UPLOAD_BYTES, uploadToSignedUrl } from "./upload";
 
-type Shot = { id: string; url: string | null };
+type Shot = { id: string; url: string | null; path?: string | null };
 
 /** Click-to-zoom viewer for tall page screenshots. */
 export function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
@@ -100,8 +102,12 @@ export function PresaleScreenshots({ brandId, brandName, shots, isAdmin }: { bra
           {shots.map((s, i) =>
             s.url ? (
               <div key={s.id} className="relative group">
-                <button type="button" className="block w-full cursor-zoom-in" onClick={() => setZoom(s.url)}>
-                  <img src={s.url} alt={`${brandName} pre-sale page ${i + 1}`} loading="lazy" decoding="async" className="w-full rounded-md border border-line" />
+                <button type="button" className="block w-full cursor-zoom-in" onClick={() => setZoom(mediaSrc("res-media", s.path) ?? s.url)}>
+                  {mediaSrc("res-media", s.path) ? (
+                    <Image src={mediaSrc("res-media", s.path)!} alt={`${brandName} pre-sale page ${i + 1}`} width={1280} height={6000} quality={75} sizes="(min-width: 1024px) 560px, 100vw" className="w-full h-auto rounded-md border border-line" priority={i === 0} />
+                  ) : (
+                    <img src={s.url} alt={`${brandName} pre-sale page ${i + 1}`} loading="lazy" decoding="async" className="w-full rounded-md border border-line" />
+                  )}
                 </button>
                 {isAdmin && (
                   <button

@@ -1,8 +1,8 @@
 /**
  * Pre-Sales Vault quick upload: URL → scraped text (+ screenshot) → AI breakdown → draft row.
  * Ported from the original vault's analyze-advertorial function.
- * Needs ANTHROPIC_API_KEY. FIRECRAWL_API_KEY is optional: with it we get clean markdown and a
- * full-page screenshot; without it we fetch the page and strip it to text (no screenshot).
+ * Needs ANTHROPIC_API_KEY. FIRECRAWL_API_KEY is optional: with it we get clean markdown and its
+ * screenshot; without it we fetch the page as text and capture the screenshot with thum.io.
  */
 
 const LANGUAGE_RULES = `
@@ -180,6 +180,8 @@ export async function analyzeAdvertorial(input: string) {
     },
     source_url: url,
   };
-  const shot = screenshot ? (screenshot.startsWith("http") ? { screenshot_url: screenshot } : { screenshot_base64: screenshot }) : {};
+  // Without Firecrawl, capture the full page with thum.io (free, no key); the resources API downloads and stores it.
+  const fallbackShot = `https://image.thum.io/get/width/1280/crop/9000/fullpage/noanimate/wait/5/${cleanUrl(url)}`;
+  const shot = screenshot ? (screenshot.startsWith("http") ? { screenshot_url: screenshot } : { screenshot_base64: screenshot }) : { screenshot_url: fallbackShot };
   return { data, ...shot };
 }

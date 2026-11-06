@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import Link from "next/link";
+import { mediaSrc } from "@/lib/media";
 import { ArrowUpRight, ExternalLink, ImageIcon, Settings2 } from "lucide-react";
 import { PRESALE_STYLES, adminConfigured, getPresaleList, isResourcesAdmin, resHref, styleTone } from "@/lib/resources";
 import { Crumbs } from "@/components/kb/bits";
@@ -70,8 +72,10 @@ export default async function PreSalesVault({ searchParams }: { searchParams: Pr
               <Link href={resHref.presaleBrand(b.slug)} className="flex flex-col flex-1 p-5">
                 <h2 className="display text-[1.45rem] leading-tight mb-3 group-hover:text-gold-soft transition-colors">{b.brand_name}</h2>
                 <div className="relative h-40 rounded-md overflow-hidden border border-line bg-bg mb-4">
-                  {b.thumbnail ? (
-                    <img src={b.thumbnail} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]" />
+                  {mediaSrc("res-media", b.thumbnail_path) ? (
+                    <Image src={mediaSrc("res-media", b.thumbnail_path)!} alt="" fill quality={60} sizes="(min-width: 1536px) 22vw, (min-width: 1280px) 30vw, (min-width: 640px) 45vw, 92vw" className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]" />
+                  ) : b.thumbnail ? (
+                    <img src={b.thumbnail} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover object-top" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-mute/40"><ImageIcon size={28} strokeWidth={1} /></div>
                   )}

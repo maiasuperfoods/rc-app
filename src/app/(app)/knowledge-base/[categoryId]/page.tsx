@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import Link from "next/link";
+import { mediaSrc } from "@/lib/media";
 import { notFound } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { chaptersOf, getKbTree, kbHref, lessonsOf } from "@/lib/kb";
@@ -20,7 +22,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
 
       {cat.image && (
         <div className="relative aspect-[21/9] rounded-[var(--radius)] overflow-hidden border border-line mb-7 bg-bg">
-          <img src={cat.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          {mediaSrc("kb-media", cat.image_path) ? (
+            <Image src={mediaSrc("kb-media", cat.image_path)!} alt="" fill priority quality={75} sizes="(min-width: 1024px) 900px, 100vw" className="object-cover" />
+          ) : (
+            <img src={cat.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/70 via-transparent to-transparent" />
         </div>
       )}

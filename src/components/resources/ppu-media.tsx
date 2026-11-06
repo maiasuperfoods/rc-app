@@ -1,14 +1,16 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
+import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
+import { mediaSrc } from "@/lib/media";
 import { useRouter } from "next/navigation";
 import { ImageIcon, Loader2, Trash2, Upload, Video } from "lucide-react";
 import { ppuDeleteMedia, ppuRegisterMedia, ppuUploadUrl } from "@/app/(app)/resources/actions";
 import { MAX_UPLOAD_BYTES, uploadToSignedUrl } from "./upload";
 import { Lightbox } from "./screenshots";
 
-type Media = { id: string; url: string | null };
+type Media = { id: string; url: string | null; path?: string | null };
 
 function AdminUpload({ brandId, step, kind, onError }: { brandId: string; step: number; kind: "video" | "screenshot"; onError: (e: string | null) => void }) {
   const router = useRouter();
@@ -119,8 +121,12 @@ export function PpuScreenshots({ brandId, step, shots, isAdmin }: { brandId: str
             s.url ? (
               <div key={s.id} className="relative group">
                 {isAdmin && <DeleteButton id={s.id} onError={setErr} />}
-                <button type="button" onClick={() => setZoom(s.url)} className="block w-full aspect-[3/4] overflow-hidden rounded-md border border-line bg-bg cursor-zoom-in">
-                  <img src={s.url} alt="" loading="lazy" className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]" />
+                <button type="button" onClick={() => setZoom(mediaSrc("res-media", s.path) ?? s.url)} className="relative block w-full aspect-[3/4] overflow-hidden rounded-md border border-line bg-bg cursor-zoom-in">
+                  {mediaSrc("res-media", s.path) ? (
+                    <Image src={mediaSrc("res-media", s.path)!} alt="" fill quality={60} sizes="(min-width: 640px) 260px, 45vw" className="object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]" />
+                  ) : (
+                    <img src={s.url} alt="" loading="lazy" className="w-full h-full object-cover object-top" />
+                  )}
                 </button>
               </div>
             ) : null,

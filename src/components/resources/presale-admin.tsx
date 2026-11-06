@@ -132,7 +132,7 @@ export function PresaleAdmin({ items, editing, ai, firecrawl }: { items: Presale
         </form>
         {err && <p className="text-bad text-sm mt-3">{err}</p>}
         {!ai && <p className="text-warn text-xs mt-3">AI isn&apos;t connected: add <code className="formula">ANTHROPIC_API_KEY</code> to the Vercel project to turn this on.</p>}
-        {ai && !firecrawl && <p className="text-mute text-xs mt-3">Screenshots aren&apos;t captured automatically yet (add <code className="formula">FIRECRAWL_API_KEY</code> for that) — upload them on the entry&apos;s page.</p>}
+        {ai && <p className="text-mute text-xs mt-3">A full-page screenshot is captured automatically{firecrawl ? "" : " (free capture service; add more on the entry's page if it misses anything)"}.</p>}
       </section>
 
       {editing && <Editor key={editing.id} brand={editing} onClose={() => router.push("?", { scroll: false })} />}

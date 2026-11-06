@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import Link from "next/link";
+import { mediaSrc } from "@/lib/media";
 import { categoryStats, chaptersOf, getKbTree, kbHref, lessonsOf } from "@/lib/kb";
 import { KbEmpty, KbTitle, plural } from "@/components/kb/bits";
 import { DoneCount } from "@/components/kb/progress";
@@ -27,8 +29,10 @@ export default async function KnowledgeBasePage() {
               className="group card overflow-hidden flex flex-col transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-[0_10px_40px_-12px_rgba(201,169,97,0.25)]"
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-bg">
-                {cat.image ? (
-                  <img src={cat.image} alt="" loading={i < 3 ? "eager" : "lazy"} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
+                {mediaSrc("kb-media", cat.image_path) ? (
+                  <Image src={mediaSrc("kb-media", cat.image_path)!} alt="" fill quality={60} priority={i < 3} sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" />
+                ) : cat.image ? (
+                  <img src={cat.image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
                 ) : (
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_60%,var(--gold-dim),transparent_70%)]" />
                 )}
