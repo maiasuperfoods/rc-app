@@ -2,7 +2,7 @@ import { Marked } from "marked";
 import formats from "@/content/video-ads/video-ad-formats";
 import hiring from "@/content/video-ads/hiring-video-editors";
 
-/** Resources → Video Ads: long-form guides, written in Markdown and rendered here. */
+/** Long-form course guides written in Markdown (Knowledge Base → Marketing & Advertising → Video Ads). */
 export interface VideoAdGuide {
   slug: string;
   title: string;
@@ -69,8 +69,3 @@ export function renderGuide(md: string) {
   const html = marked.parse(md, { async: false }) as string;
   return { html, toc };
 }
-
-export const videoAdsHref = {
-  hub: "/resources/video-ads",
-  guide: (slug: string) => `/resources/video-ads/${slug}`,
-};

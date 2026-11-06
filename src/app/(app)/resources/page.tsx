@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Clapperboard, Newspaper, Repeat } from "lucide-react";
-import { VIDEO_AD_GUIDES } from "@/lib/video-ads";
+import { ArrowUpRight, Newspaper, Repeat } from "lucide-react";
 import { getPpuList, getPresaleList, resHref } from "@/lib/resources";
 import { Crumbs, KbTitle } from "@/components/kb/bits";
 
@@ -24,14 +23,6 @@ export default async function ResourcesHub() {
       kicker: "Upsell funnels",
       body: "How successful brands use post-purchase upsell videos to raise AOV: funnels, offers, full scripts and the psychology behind them.",
       meta: `${ppu.length} brand dossiers · ${ppu.reduce((n, b) => n + b.upsell_count, 0)} upsells`,
-    },
-    {
-      href: "/resources/video-ads",
-      icon: Clapperboard,
-      title: "Video Ads",
-      kicker: "Guides",
-      body: "The 11 video ad formats we run and how each converts, plus how to hire the editors who cut them.",
-      meta: `${VIDEO_AD_GUIDES.length} guides`,
     },
   ];
   return (

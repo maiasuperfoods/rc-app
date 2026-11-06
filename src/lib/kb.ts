@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { isDemoMode, supabaseServer } from "@/lib/supabase/server";
+import { getGuide, renderGuide } from "@/lib/video-ads";
 
 /**
  * Knowledge Base (the Renaissance Commerce course) — data access.
@@ -65,7 +66,20 @@ export const getKbTree = cache(async (): Promise<KbTree> => {
   return { categories, chapters: chs.data ?? [], lessons, configured: true };
 });
 
-export const getKbLesson = cache(async (id: string): Promise<KbLesson | null> => {
+/**
+ * Some lessons are written in the repo as Markdown guides (src/content). Their row in kb_lessons holds
+ * only a marker, `<!--rc-guide:slug-->`, which is swapped for the rendered guide here.
+ */
+function withGuide(l: KbLesson | null): KbLesson | null {
+  const m = l?.content.trim().match(/^<!--rc-guide:([a-z0-9-]+)-->$/);
+  if (!l || !m) return l;
+  const g = getGuide(m[1]);
+  return g ? { ...l, content: `<div class="kb-guide">${renderGuide(g.md).html}</div>` } : l;
+}
+
+export const getKbLesson = cache(async (id: string): Promise<KbLesson | null> => withGuide(await getKbLessonRaw(id)));
+
+const getKbLessonRaw = async (id: string): Promise<KbLesson | null> => {
   if (contentViaEdge()) return edge<KbLesson>(`view=lesson&id=${encodeURIComponent(id)}`);
   const sb = await supabaseServer();
   const { data: l } = await sb.from("kb_lessons").select("id,chapter_id,title,content,video_url,video_path,order").eq("id", id).maybeSingle();
@@ -76,7 +90,7 @@ export const getKbLesson = cache(async (id: string): Promise<KbLesson | null> =>
     video = data?.signedUrl ?? video;
   }
   return { id: l.id, chapter_id: l.chapter_id, title: l.title, content: l.content ?? "", video, order: l.order };
-});
+};
 
 /** Lessons the signed-in user has completed. Demo mode tracks progress in the browser instead. */
 export async function getKbProgress(): Promise<string[]> {
