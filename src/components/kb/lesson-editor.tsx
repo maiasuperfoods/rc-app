@@ -6,8 +6,11 @@ import { useRouter } from "next/navigation";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
+import { Color, FontSize, TextStyle } from "@tiptap/extension-text-style";
+import Highlight from "@tiptap/extension-highlight";
+import TextAlign from "@tiptap/extension-text-align";
 import {
-  Bold, Code, Eye, FileCode2, Heading2, Heading3, ImagePlus, Italic, Link2, List, ListOrdered, Minus, Quote, Redo2, Save, SquareTerminal, Strikethrough, Underline, Undo2, Upload, Video, X,
+  AlignCenter, AlignLeft, AlignRight, Baseline, Bold, Code, Eye, Highlighter, RemoveFormatting, FileCode2, ImagePlus, Italic, Link2, List, ListOrdered, Minus, Quote, Redo2, Save, SquareTerminal, Strikethrough, Underline, Undo2, Upload, Video, X,
 } from "lucide-react";
 import { kbUpdate, kbUploadUrl } from "@/app/(app)/knowledge-base/admin/actions";
 import { MAX_UPLOAD_BYTES, uploadToSignedUrl } from "@/components/resources/upload";
@@ -54,18 +57,121 @@ function Tool({ on, label, onClick, children, disabled }: { on?: boolean; label:
   );
 }
 
+const SIZES = [
+  { label: "Small", value: "0.875rem" },
+  { label: "Normal", value: "" },
+  { label: "Large", value: "1.25rem" },
+  { label: "Larger", value: "1.5rem" },
+  { label: "Huge", value: "2rem" },
+];
+const COLORS = [
+  { label: "Gold", value: "#c9a961" },
+  { label: "Cream", value: "#f2e8d5" },
+  { label: "White", value: "#ffffff" },
+  { label: "Grey", value: "#9a9aa3" },
+  { label: "Red", value: "#e5484d" },
+  { label: "Orange", value: "#f0883e" },
+  { label: "Green", value: "#46a758" },
+  { label: "Blue", value: "#3e8ef7" },
+  { label: "Purple", value: "#8e6cef" },
+];
+const MARKS = [
+  { label: "Gold", value: "rgba(201,169,97,0.35)" },
+  { label: "Yellow", value: "rgba(250,204,21,0.4)" },
+  { label: "Green", value: "rgba(70,167,88,0.35)" },
+  { label: "Blue", value: "rgba(62,142,247,0.35)" },
+  { label: "Red", value: "rgba(229,72,77,0.35)" },
+];
+
+/** A small swatch menu; closes after a pick or on Escape / outside click. */
+function Swatches({ label, icon, current, items, onPick, onClear, custom }: {
+  label: string; icon: React.ReactNode; current?: string; items: { label: string; value: string }[]; onPick: (v: string) => void; onClear: () => void; custom?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => { document.removeEventListener("mousedown", close); document.removeEventListener("keydown", close); };
+  }, [open]);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button" title={label} aria-label={label} aria-expanded={open}
+        onMouseDown={(e) => e.preventDefault()} onClick={() => setOpen((o) => !o)}
+        className={`h-8 px-1.5 inline-flex items-center gap-1 rounded-md text-dim hover:text-ink hover:bg-hover ${open ? "bg-hover text-ink" : ""}`}
+      >
+        {icon}
+        <span className="block w-3.5 h-1 rounded-sm border border-line" style={{ background: current || "transparent" }} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full mt-1 z-30 card p-2 w-48 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.7)]">
+          <div className="grid grid-cols-5 gap-1.5">
+            {items.map((c) => (
+              <button key={c.value} type="button" title={c.label} aria-label={c.label}
+                onMouseDown={(e) => e.preventDefault()} onClick={() => { onPick(c.value); setOpen(false); }}
+                className={`h-7 rounded-md border ${current === c.value ? "border-ink" : "border-line"} hover:scale-110 transition-transform`} style={{ background: c.value }} />
+            ))}
+          </div>
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-line">
+            {custom && (
+              <label className="flex items-center gap-1.5 text-xs text-dim cursor-pointer">
+                <input type="color" className="w-6 h-6 bg-transparent border-0 p-0 cursor-pointer" onChange={(e) => onPick(e.target.value)} aria-label="Custom colour" />
+                Custom
+              </label>
+            )}
+            <button type="button" className="ml-auto text-xs text-mute hover:text-ink" onMouseDown={(e) => e.preventDefault()} onClick={() => { onClear(); setOpen(false); }}>Clear</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Toolbar({ ed, onImage, onLink }: { ed: Editor; onImage: () => void; onLink: () => void }) {
   const c = () => ed.chain().focus();
+  const ts = ed.getAttributes("textStyle") as { fontSize?: string; color?: string };
+  const block = ed.isActive("heading", { level: 2 }) ? "h2" : ed.isActive("heading", { level: 3 }) ? "h3" : ed.isActive("heading", { level: 4 }) ? "h4" : "p";
   return (
-    <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-line sticky top-0 bg-panel z-10">
-      <Tool label="Heading" on={ed.isActive("heading", { level: 2 })} onClick={() => c().toggleHeading({ level: 2 }).run()}><Heading2 size={16} /></Tool>
-      <Tool label="Subheading" on={ed.isActive("heading", { level: 3 })} onClick={() => c().toggleHeading({ level: 3 }).run()}><Heading3 size={16} /></Tool>
+    <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-line sticky top-[52px] bg-panel z-10">
+      <select
+        aria-label="Paragraph style" title="Paragraph style" value={block}
+        className="h-8 rounded-md bg-transparent border border-line text-xs text-dim px-1.5 mr-1 hover:text-ink"
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v === "p") c().setParagraph().run();
+          else c().setHeading({ level: Number(v.slice(1)) as 2 | 3 | 4 }).run();
+        }}
+      >
+        <option value="p">Paragraph</option>
+        <option value="h2">Heading</option>
+        <option value="h3">Subheading</option>
+        <option value="h4">Small heading</option>
+      </select>
+      <select
+        aria-label="Text size" title="Text size" value={ts.fontSize ?? ""}
+        className="h-8 rounded-md bg-transparent border border-line text-xs text-dim px-1.5 mr-1 hover:text-ink"
+        onChange={(e) => (e.target.value ? c().setFontSize(e.target.value).run() : c().unsetFontSize().run())}
+      >
+        {SIZES.map((x) => <option key={x.label} value={x.value}>{x.label}</option>)}
+      </select>
       <span className="w-px h-5 bg-line mx-1" />
-      <Tool label="Bold" on={ed.isActive("bold")} onClick={() => c().toggleBold().run()}><Bold size={15} /></Tool>
-      <Tool label="Italic" on={ed.isActive("italic")} onClick={() => c().toggleItalic().run()}><Italic size={15} /></Tool>
-      <Tool label="Underline" on={ed.isActive("underline")} onClick={() => c().toggleUnderline().run()}><Underline size={15} /></Tool>
+      <Tool label="Bold (Ctrl+B)" on={ed.isActive("bold")} onClick={() => c().toggleBold().run()}><Bold size={15} /></Tool>
+      <Tool label="Italic (Ctrl+I)" on={ed.isActive("italic")} onClick={() => c().toggleItalic().run()}><Italic size={15} /></Tool>
+      <Tool label="Underline (Ctrl+U)" on={ed.isActive("underline")} onClick={() => c().toggleUnderline().run()}><Underline size={15} /></Tool>
       <Tool label="Strikethrough" on={ed.isActive("strike")} onClick={() => c().toggleStrike().run()}><Strikethrough size={15} /></Tool>
       <Tool label="Inline code" on={ed.isActive("code")} onClick={() => c().toggleCode().run()}><Code size={15} /></Tool>
+      <Swatches label="Text colour" icon={<Baseline size={15} />} current={ts.color} items={COLORS} custom onPick={(v) => c().setColor(v).run()} onClear={() => c().unsetColor().run()} />
+      <Swatches label="Highlight" icon={<Highlighter size={15} />} current={ed.getAttributes("highlight").color} items={MARKS} onPick={(v) => c().setHighlight({ color: v }).run()} onClear={() => c().unsetHighlight().run()} />
+      <Tool label="Clear formatting" onClick={() => c().unsetAllMarks().run()}><RemoveFormatting size={15} /></Tool>
+      <span className="w-px h-5 bg-line mx-1" />
+      <Tool label="Align left" on={ed.isActive({ textAlign: "left" })} onClick={() => c().setTextAlign("left").run()}><AlignLeft size={15} /></Tool>
+      <Tool label="Align centre" on={ed.isActive({ textAlign: "center" })} onClick={() => c().setTextAlign("center").run()}><AlignCenter size={15} /></Tool>
+      <Tool label="Align right" on={ed.isActive({ textAlign: "right" })} onClick={() => c().setTextAlign("right").run()}><AlignRight size={15} /></Tool>
       <span className="w-px h-5 bg-line mx-1" />
       <Tool label="Bulleted list" on={ed.isActive("bulletList")} onClick={() => c().toggleBulletList().run()}><List size={16} /></Tool>
       <Tool label="Numbered list" on={ed.isActive("orderedList")} onClick={() => c().toggleOrderedList().run()}><ListOrdered size={16} /></Tool>
@@ -75,7 +181,7 @@ function Toolbar({ ed, onImage, onLink }: { ed: Editor; onImage: () => void; onL
       <Tool label="Link" on={ed.isActive("link")} onClick={onLink}><Link2 size={15} /></Tool>
       <Tool label="Image" onClick={onImage}><ImagePlus size={15} /></Tool>
       <span className="w-px h-5 bg-line mx-1" />
-      <Tool label="Undo" disabled={!ed.can().undo()} onClick={() => c().undo().run()}><Undo2 size={15} /></Tool>
+      <Tool label="Undo (Ctrl+Z)" disabled={!ed.can().undo()} onClick={() => c().undo().run()}><Undo2 size={15} /></Tool>
       <Tool label="Redo" disabled={!ed.can().redo()} onClick={() => c().redo().run()}><Redo2 size={15} /></Tool>
     </div>
   );
@@ -101,7 +207,15 @@ export function LessonEditor({ lesson, backHref }: { lesson: EditableLesson; bac
 
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit.configure({ link: { openOnClick: false, autolink: true } }), SizedImage],
+    extensions: [
+      StarterKit.configure({ link: { openOnClick: false, autolink: true }, heading: { levels: [2, 3, 4] } }),
+      SizedImage,
+      TextStyle,
+      Color,
+      FontSize,
+      Highlight.configure({ multicolor: true }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+    ],
     content: special ? "" : lesson.content,
     editorProps: { attributes: { class: "kb-prose min-h-[420px] px-6 py-6 md:px-10 outline-none" } },
     onUpdate: ({ editor: e }) => {
@@ -265,7 +379,7 @@ export function LessonEditor({ lesson, backHref }: { lesson: EditableLesson; bac
         </div>
 
         {mode === "visual" && editor && (
-          <div className="card overflow-hidden">
+          <div className="card">
             <Toolbar ed={editor} onImage={() => imgInput.current?.click()} onLink={() => { setLinkUrl(editor.getAttributes("link").href ?? ""); setLinkOpen(true); }} />
             {linkOpen && (
               <form

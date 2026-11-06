@@ -294,6 +294,11 @@ select.input {
 .kb-prose p { margin: 0 0 1rem; }
 .kb-prose p:empty { display: none; }
 .kb-prose strong, .kb-prose b { color: var(--text); font-weight: 600; }
+/* colours and sizes set in the lesson editor win over the default prose colours */
+.kb-prose span[style*="color"] strong, .kb-prose span[style*="color"] b, .kb-prose span[style*="color"] em, .kb-prose span[style*="color"] a { color: inherit; }
+.kb-prose mark { color: inherit; border-radius: 3px; padding: 0 2px; }
+.kb-prose img { max-width: 100%; height: auto; border-radius: 6px; }
+.kb-prose .ProseMirror-selectednode { outline: 2px solid var(--gold); }
 .kb-prose em { color: var(--text); }
 .kb-prose h1, .kb-prose h2 { font-family: var(--font-playfair), Georgia, serif; color: var(--cream); font-weight: 500; font-size: 1.55rem; line-height: 1.25; margin: 2.2rem 0 0.9rem; letter-spacing: -0.01em; }
 .kb-prose h3 { color: var(--text); font-size: 1.1rem; font-weight: 600; margin: 1.6rem 0 0.6rem; }
