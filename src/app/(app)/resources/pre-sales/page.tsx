@@ -81,7 +81,7 @@ export default async function PreSalesVault({ searchParams }: { searchParams: Pr
                   <span className="text-[0.66rem] uppercase tracking-[0.14em] text-mute">{b.niche}</span>
                 </div>
                 <p className="text-sm text-dim mb-2">{b.product_name}</p>
-                <p className="font-serif italic text-[0.98rem] leading-snug text-ink/80 line-clamp-3 mb-4">“{b.headline}”</p>
+                <p className="text-[0.9rem] font-medium leading-snug text-ink/90 line-clamp-3 mb-4 pl-3 border-l-2 border-gold/40">{b.headline}</p>
                 <p className="mt-auto text-[0.66rem] uppercase tracking-[0.12em] text-mute">{b.traffic_flow}</p>
               </Link>
               <div className="flex items-center justify-between px-5 py-3 border-t border-line">

@@ -43,7 +43,12 @@ export default async function PresaleBrandPage({ params }: { params: Promise<{ s
         </div>
         <h1 className="display text-[2.1rem] md:text-[2.6rem] leading-tight">{b.brand_name}</h1>
         <p className="text-dim text-lg mt-1">{b.product_name}</p>
-        {b.headline && <p className="font-serif italic text-ink/80 mt-4 text-[1.05rem] leading-snug">“{b.headline}”</p>}
+        {b.headline && (
+          <div className="mt-5 card-elev px-4 py-3">
+            <div className="label mb-1">Headline</div>
+            <p className="text-ink font-medium leading-snug">{b.headline}</p>
+          </div>
+        )}
         {b.description && <p className="text-dim text-sm mt-3 max-w-3xl">{b.description}</p>}
         {b.live_url && (
           <a href={b.live_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-4 text-sm text-gold hover:text-gold-soft">

@@ -140,7 +140,7 @@ export default async function PpuBrandPage({ params }: { params: Promise<{ id: s
                       {levers.map((l, i) => (
                         <div key={i} className="card-elev p-4">
                           <h4 className="text-ink font-medium mb-1">{l.name}</h4>
-                          {l.quote && <p className="font-serif italic text-sm text-ink/75 mb-1.5">“{l.quote}”</p>}
+                          {l.quote && <p className="text-sm text-ink/85 mb-1.5 pl-3 border-l-2 border-gold/40">“{l.quote}”</p>}
                           <p className="text-sm text-dim leading-relaxed">{l.explanation}</p>
                         </div>
                       ))}
