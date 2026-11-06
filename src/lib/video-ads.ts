@@ -1,6 +1,7 @@
 import { Marked } from "marked";
 import formats from "@/content/video-ads/video-ad-formats";
 import hiring from "@/content/video-ads/hiring-video-editors";
+import paraPatrol from "@/content/course/para-patrol-positioning";
 
 /** Long-form course guides written in Markdown (Knowledge Base → Marketing & Advertising → Video Ads). */
 export interface VideoAdGuide {
@@ -28,6 +29,14 @@ export const VIDEO_AD_GUIDES: VideoAdGuide[] = [
     summary: "Which plan to buy, how to define the role and pay, a job post that filters, headhunting, screening, the paid test edit and scorecard, the offer, onboarding and keeping good editors.",
     updated: "4 Nov 2026",
     md: hiring,
+  },
+  {
+    slug: "para-patrol-positioning",
+    title: "Para Patrol Positioning: The \"Behavior Balancer\"",
+    kicker: "Example",
+    summary: "A full positioning example: category, enemy, mechanism, proof stack, differentiators, messaging hierarchy, objections and roadmap.",
+    updated: "12 Feb 2026",
+    md: paraPatrol,
   },
 ];
 

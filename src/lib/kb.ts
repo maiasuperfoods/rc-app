@@ -68,13 +68,15 @@ export const getKbTree = cache(async (): Promise<KbTree> => {
 
 /**
  * Some lessons are written in the repo as Markdown guides (src/content). Their row in kb_lessons holds
- * only a marker, `<!--rc-guide:slug-->`, which is swapped for the rendered guide here.
+ * a marker, `<!--rc-guide:slug-->` (alone or inside other lesson HTML), swapped for the rendered guide here.
  */
 function withGuide(l: KbLesson | null): KbLesson | null {
-  const m = l?.content.trim().match(/^<!--rc-guide:([a-z0-9-]+)-->$/);
-  if (!l || !m) return l;
-  const g = getGuide(m[1]);
-  return g ? { ...l, content: `<div class="kb-guide">${renderGuide(g.md).html}</div>` } : l;
+  if (!l || !l.content.includes("<!--rc-guide:")) return l;
+  const content = l.content.replace(/<!--rc-guide:([a-z0-9-]+)-->/g, (marker, slug: string) => {
+    const g = getGuide(slug);
+    return g ? `<div class="kb-guide">${renderGuide(g.md).html}</div>` : marker;
+  });
+  return { ...l, content };
 }
 
 export const getKbLesson = cache(async (id: string): Promise<KbLesson | null> => withGuide(await getKbLessonRaw(id)));
