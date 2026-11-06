@@ -9,12 +9,14 @@ import type { NextRequest } from "next/server";
  */
 function allowed(bucket: string, path: string) {
   if (path.includes("..")) return false;
-  if (bucket === "kb-media") return /^categories\/[\w.-]+$/.test(path);
+  if (bucket === "kb-media") return /^(categories|lesson-images)\/[\w.-]+$/.test(path);
   if (bucket === "res-media") return /^presale\/[\w-]+\/[\w.-]+$/.test(path) || /^ppu\/[\w-]+\/\d+\/screenshot\/[\w.-]+$/.test(path);
   return false;
 }
 
-function signApi() {
+function signApi(bucket: string) {
+  // course images are signed by the kb function, vault images by the resources function
+  if (bucket === "kb-media" && process.env.KB_API_URL) return process.env.KB_API_URL;
   if (process.env.RESOURCES_API_URL) return process.env.RESOURCES_API_URL;
   return process.env.KB_API_URL?.replace(/\/kb$/, "/resources") ?? null;
 }
@@ -24,7 +26,7 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ bucket: st
   const path = parts.map(decodeURIComponent).join("/");
   if (!allowed(bucket, path)) return new Response("Not found", { status: 404 });
 
-  const api = signApi();
+  const api = signApi(bucket);
   const token = process.env.KB_API_TOKEN;
   if (!api || !token) return new Response("Media is not configured", { status: 503 });
 

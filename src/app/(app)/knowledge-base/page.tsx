@@ -5,17 +5,30 @@ import { mediaSrc } from "@/lib/media";
 import { categoryStats, chaptersOf, getKbTree, kbHref, lessonsOf } from "@/lib/kb";
 import { KbEmpty, KbTitle, plural } from "@/components/kb/bits";
 import { DoneCount } from "@/components/kb/progress";
+import { Pencil } from "lucide-react";
+import { isKbAdmin } from "@/lib/kb-admin";
+import { adminConfigured } from "@/lib/resources";
+import { AdminBar } from "@/components/resources/admin-bar";
 
 export const metadata = { title: "Knowledge Base · Renaissance Commerce" };
 
 export default async function KnowledgeBasePage() {
-  const t = await getKbTree();
-  if (!t.configured || t.categories.length === 0) return <KbEmpty />;
+  const [t, admin] = await Promise.all([getKbTree(), isKbAdmin()]);
+  const adminRow = (
+    <div className="flex items-center gap-2">
+      {admin && <Link href={kbHref.admin} className="btn btn-primary !py-1.5 !text-xs"><Pencil size={13} /> Edit course</Link>}
+      <AdminBar isAdmin={admin} configured={adminConfigured()} />
+    </div>
+  );
+  if (!t.configured || t.categories.length === 0) return admin ? <div className="space-y-4">{adminRow}<KbEmpty /></div> : <KbEmpty />;
   const lessonTotal = t.lessons.length;
 
   return (
     <>
-      <KbTitle title="Knowledge Base" sub={`${plural(t.categories.length, "category")} · ${plural(lessonTotal, "lesson")}`} />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <KbTitle title="Knowledge Base" sub={`${plural(t.categories.length, "category")} · ${plural(lessonTotal, "lesson")}`} />
+        {adminRow}
+      </div>
       <div className="hairline mb-8" />
 
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">

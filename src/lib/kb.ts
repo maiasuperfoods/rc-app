@@ -29,11 +29,11 @@ export interface KbTree {
 const SIGN_TTL = 60 * 60 * 6;
 const EMPTY: KbTree = { categories: [], chapters: [], lessons: [], configured: false };
 
-async function edge<T>(qs: string): Promise<T | null> {
+async function edge<T>(qs: string, fresh = false): Promise<T | null> {
   const url = process.env.KB_API_URL;
   const token = process.env.KB_API_TOKEN;
   if (!url || !token) return null;
-  const r = await fetch(`${url}?${qs}`, { headers: { "x-kb-token": token }, next: { revalidate: 300 } });
+  const r = await fetch(`${url}?${qs}`, { headers: { "x-kb-token": token }, ...(fresh ? { cache: "no-store" as const } : { next: { revalidate: 60, tags: ["kb"] } }) });
   if (!r.ok) return null;
   return (await r.json()) as T;
 }
@@ -41,9 +41,9 @@ async function edge<T>(qs: string): Promise<T | null> {
 /** Course content lives in the content project; the student project only stores progress. */
 const contentViaEdge = () => isDemoMode() || Boolean(process.env.KB_API_URL);
 
-export const getKbTree = cache(async (): Promise<KbTree> => {
+export const getKbTree = cache(async (fresh = false): Promise<KbTree> => {
   if (contentViaEdge()) {
-    const t = await edge<Omit<KbTree, "configured">>("view=tree");
+    const t = await edge<Omit<KbTree, "configured">>("view=tree", fresh);
     return t ? { ...t, configured: true } : EMPTY;
   }
   const sb = await supabaseServer();
@@ -80,6 +80,11 @@ function withGuide(l: KbLesson | null): KbLesson | null {
 }
 
 export const getKbLesson = cache(async (id: string): Promise<KbLesson | null> => withGuide(await getKbLessonRaw(id)));
+
+/** The lesson exactly as stored (guide markers not expanded), for the editor. */
+export const getKbLessonForEdit = cache(async (id: string) =>
+  contentViaEdge() ? edge<KbLesson & { video_url: string | null; video_path: string | null }>(`view=lesson&id=${encodeURIComponent(id)}`, true) : null,
+);
 
 const getKbLessonRaw = async (id: string): Promise<KbLesson | null> => {
   if (contentViaEdge()) return edge<KbLesson>(`view=lesson&id=${encodeURIComponent(id)}`);
@@ -132,4 +137,6 @@ export const kbHref = {
   category: (catId: string) => `/knowledge-base/${catId}`,
   chapter: (catId: string, chId: string) => `/knowledge-base/${catId}/${chId}`,
   lesson: (lessonId: string) => `/knowledge-base/lesson/${lessonId}`,
+  edit: (lessonId: string) => `/knowledge-base/lesson/${lessonId}/edit`,
+  admin: "/knowledge-base/admin",
 };

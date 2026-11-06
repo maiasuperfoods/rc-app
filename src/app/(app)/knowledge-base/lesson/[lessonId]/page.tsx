@@ -5,6 +5,8 @@ import { flatLessons, getKbLesson, getKbTree, kbHref } from "@/lib/kb";
 import { Crumbs, KbEmpty } from "@/components/kb/bits";
 import { CompleteButton } from "@/components/kb/progress";
 import { PromptCopy } from "@/components/kb/prompt-copy";
+import { Pencil } from "lucide-react";
+import { isKbAdmin } from "@/lib/kb-admin";
 
 /** Course HTML comes from our own kb_lessons table. Open outbound links in a new tab. */
 function prepare(html: string) {
@@ -13,7 +15,7 @@ function prepare(html: string) {
 
 export default async function LessonPage({ params }: { params: Promise<{ lessonId: string }> }) {
   const { lessonId } = await params;
-  const [t, lesson] = await Promise.all([getKbTree(), getKbLesson(lessonId)]);
+  const [t, lesson, admin] = await Promise.all([getKbTree(), getKbLesson(lessonId), isKbAdmin()]);
   if (!t.configured) return <KbEmpty />;
   if (!lesson) notFound();
 
@@ -39,7 +41,10 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
       <header className="mb-6">
         {n > 0 && <div className="label mb-2">Lesson {n} of {pos.length}</div>}
-        <h1 className="display text-[1.9rem] md:text-[2.5rem] leading-[1.12]">{lesson.title}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="display text-[1.9rem] md:text-[2.5rem] leading-[1.12]">{lesson.title}</h1>
+          {admin && <Link href={kbHref.edit(lesson.id)} className="btn btn-primary !py-1.5 !text-xs shrink-0 mt-2"><Pencil size={13} /> Edit lesson</Link>}
+        </div>
       </header>
 
       {lesson.video && (
