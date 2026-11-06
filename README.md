@@ -33,7 +33,7 @@ With `NEXT_PUBLIC_SUPABASE_URL` set and `DEMO_MODE=false`, the app uses Supabase
 
 ## Deploy
 
-1. **Database.** Apply `supabase/migrations/0001_schema.sql` then `0002_rls.sql` to the shared Supabase project (same one as the Private Circle platform; the new tables don't touch its tables). Add coaches with `insert into app_roles (user_id, role) values ('<auth user id>', 'coach')`.
+1. **Database.** Apply `supabase/migrations/0001_schema.sql` then `0002_rls.sql` to the shared Supabase project (same one as the Private Circle platform; the new tables don't touch its tables). Coaches and admins are not student accounts: they live in `os_members` in the admin (Renaissance OS) Supabase project and sign in with that login. The student project's `admin` edge function verifies them through the admin project's `os-auth` function (URL + token in `app_secrets`) and opens a session with a shadow auth user. Add coaches from `/admin/access`.
 2. **OAuth apps.** Create a Shopify app (scopes in `src/lib/integrations/shopify.ts`, redirect `https://app.renaissancecommerce.com/api/integrations/shopify/callback`) and a Meta app with `ads_read` (redirect `.../api/integrations/meta/callback`; App Review is needed before non-admin students can connect).
 3. **Secrets.** `openssl rand -base64 32` → `INTEGRATIONS_ENCRYPTION_KEY`. Set every `sync: false` variable from `render.yaml` in the Render dashboard.
 4. **Render.** `render.yaml` defines the web service and three cron jobs (hourly sync, nightly backfill, Monday WBR). Point `app.renaissancecommerce.com` at the web service.

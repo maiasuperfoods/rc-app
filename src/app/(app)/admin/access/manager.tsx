@@ -3,13 +3,15 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Copy, KeyRound, Link2, Plus, Trash2, UserPlus } from "lucide-react";
-import { inviteCoach, inviteStudent, removeStudent, resetLink } from "./actions";
+import { inviteCoach, inviteStudent, removeCoach, removeStudent, resetCoachPassword, resetLink } from "./actions";
 
 type Person = { user_id: string; email?: string; name?: string; last_sign_in_at?: string | null };
+export type Coach = { id: string; email: string; name: string; role: "admin" | "coach"; must_change: boolean; last_sign_in_at: string | null };
 export type AccessData = {
   brands: { id: string; name: string; stage: string; active: boolean; created_at: string; students: Person[] }[];
-  coaches: (Person & { role: string })[];
+  coaches: Coach[];
   invites: { email: string; tenant_id: string | null; role: string; created_at: string }[];
+  me?: { email: string; role: string };
 };
 
 function ago(iso?: string | null) {
@@ -44,22 +46,53 @@ function LinkBox({ link, note, onClose }: { link: string; note?: string; onClose
   );
 }
 
-export function AccessManager({ data, meId }: { data: AccessData; meId: string }) {
+/** Shows a temporary password once, to pass on to a coach. They must change it when they first sign in. */
+function PasswordBox({ email, password, onClose }: { email: string; password: string; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const text = `Sign in at ${typeof window !== "undefined" ? window.location.origin : ""}/login\nEmail: ${email}\nTemporary password: ${password}`;
+  return (
+    <div className="card-elev border border-gold/40 p-4 mt-4">
+      <div className="flex items-center gap-2 text-sm text-ink font-medium mb-1"><KeyRound size={14} className="text-gold" /> Temporary password for {email}</div>
+      <p className="text-xs text-dim mb-3">Send it to them privately. It only works until they sign in and pick their own password. It is shown once.</p>
+      <div className="flex gap-2">
+        <input readOnly value={password} className="input font-mono text-sm" onFocus={(e) => e.currentTarget.select()} />
+        <button
+          type="button"
+          className="btn btn-primary shrink-0"
+          onClick={async () => {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1800);
+          }}
+        >
+          {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Copied" : "Copy sign-in details"}
+        </button>
+      </div>
+      <button type="button" className="text-xs text-mute hover:text-ink mt-3" onClick={onClose}>Done</button>
+    </div>
+  );
+}
+
+export function AccessManager({ data }: { data: AccessData }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const [link, setLink] = useState<{ link: string; note?: string; at: string } | null>(null);
+  const [pw, setPw] = useState<{ email: string; password: string } | null>(null);
   const [newBrand, setNewBrand] = useState({ name: "", email: "" });
   const [addTo, setAddTo] = useState<string | null>(null);
   const [addEmail, setAddEmail] = useState("");
-  const [coachEmail, setCoachEmail] = useState("");
+  const [coach, setCoach] = useState({ name: "", email: "" });
+  const meEmail = data.me?.email ?? "";
+  const isAdmin = data.me?.role === "admin";
 
-  const act = (at: string, fn: () => Promise<{ ok: boolean; error?: string; link?: string; note?: string }>, after?: () => void) => {
+  const act = (at: string, fn: () => Promise<{ ok: boolean; error?: string; link?: string; note?: string; password?: string; email?: string }>, after?: () => void) => {
     setErr(null);
     start(async () => {
       const r = await fn();
       if (!r.ok) return setErr(r.error ?? "Failed");
       if (r.link) setLink({ link: r.link, note: r.note, at });
+      if (r.password) setPw({ email: r.email ?? at, password: r.password });
       after?.();
       router.refresh();
     });
@@ -136,25 +169,36 @@ export function AccessManager({ data, meId }: { data: AccessData; meId: string }
 
       <section className="card p-5">
         <h2 className="text-sm font-medium text-ink mb-1">Coaches · {data.coaches.length}</h2>
-        <p className="text-xs text-dim mb-3">Coaches see every brand, read-only, and can invite students.</p>
+        <p className="text-xs text-dim mb-3">Coach and admin accounts live in the Renaissance OS admin database, not with the students. Coaches see every brand, read-only, and can invite students.</p>
         <ul className="divide-y divide-line border-y border-line mb-4">
-          {data.coaches.map((c) => (
-            <li key={c.user_id} className="flex items-center gap-3 py-2.5 text-sm">
-              <div className="flex-1 min-w-0">
-                <div className="text-ink truncate">{c.name || c.email}{c.user_id === meId && <span className="text-mute"> (you)</span>}</div>
-                <div className="text-xs text-mute truncate">{c.role === "admin" ? "Owner" : "Coach"} · {ago(c.last_sign_in_at)}</div>
-              </div>
-              {c.user_id !== meId && (
-                <button type="button" className="btn btn-ghost !py-1 !px-2 !text-xs" disabled={pending} onClick={() => act("coach", () => resetLink(c.email ?? ""))}><KeyRound size={12} /> Reset link</button>
-              )}
-            </li>
-          ))}
+          {data.coaches.map((c) => {
+            const me = c.email === meEmail;
+            return (
+              <li key={c.id} className="flex items-center gap-3 py-2.5 text-sm">
+                <div className="flex-1 min-w-0">
+                  <div className="text-ink truncate">{c.name || c.email}{me && <span className="text-mute"> (you)</span>}</div>
+                  <div className="text-xs text-mute truncate">{c.name ? `${c.email} · ` : ""}{c.role === "admin" ? "Admin" : "Coach"} · {c.must_change ? "Temporary password, not yet changed" : ago(c.last_sign_in_at)}</div>
+                </div>
+                {!me && (
+                  <button type="button" title="Give them a new temporary password" className="btn btn-ghost !py-1 !px-2 !text-xs" disabled={pending} onClick={() => act(c.email, () => resetCoachPassword(c.id))}>
+                    <KeyRound size={12} /> Reset password
+                  </button>
+                )}
+                {!me && isAdmin && (
+                  <button type="button" title="Remove this coach" className="btn btn-ghost !py-1 !px-2 !text-xs text-bad" disabled={pending} onClick={() => confirm(`Remove ${c.email} as a coach?`) && act("coach", () => removeCoach(c.id))}>
+                    <Trash2 size={12} />
+                  </button>
+                )}
+              </li>
+            );
+          })}
         </ul>
-        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); act("coach", () => inviteCoach(coachEmail), () => setCoachEmail("")); }}>
-          <input className="input" type="email" placeholder="Coach email" value={coachEmail} onChange={(e) => setCoachEmail(e.target.value)} required />
-          <button className="btn btn-secondary shrink-0" disabled={pending}><UserPlus size={14} /> Invite coach</button>
+        <form className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]" onSubmit={(e) => { e.preventDefault(); act(coach.email, () => inviteCoach(coach.email, coach.name), () => setCoach({ name: "", email: "" })); }}>
+          <input className="input" placeholder="Name" value={coach.name} onChange={(e) => setCoach({ ...coach, name: e.target.value })} />
+          <input className="input" type="email" placeholder="Coach email" value={coach.email} onChange={(e) => setCoach({ ...coach, email: e.target.value })} required />
+          <button className="btn btn-secondary justify-center" disabled={pending}><UserPlus size={14} /> Add coach</button>
         </form>
-        {link?.at === "coach" && <LinkBox {...link} onClose={() => setLink(null)} />}
+        {pw && <PasswordBox {...pw} onClose={() => setPw(null)} />}
       </section>
     </div>
   );

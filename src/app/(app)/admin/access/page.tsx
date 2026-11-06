@@ -21,9 +21,9 @@ export default async function AccessPage() {
     <>
       <PageHeader
         title="Students & access"
-        subtitle="Add a brand and invite its student. They get a link to set their password, then see only their own brand. Coaches see every brand, read-only."
+        subtitle="Add a brand and invite its student. They get a link to set their password, then see only their own brand. Coaches are managed from the admin database and see every brand, read-only."
       />
-      {error ? <div className="card p-6 text-dim">{error}</div> : <AccessManager data={data} meId={ctx.user.id} />}
+      {error ? <div className="card p-6 text-dim">{error}</div> : <AccessManager data={data} />}
     </>
   );
 }

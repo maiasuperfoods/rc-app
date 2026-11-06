@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoach } from "@/lib/data";
 import { adminApi, setPasswordLink } from "@/lib/admin-api";
 
-type Result = { ok: true; link?: string; note?: string } | { ok: false; error: string };
+type Result = { ok: true; link?: string; note?: string; password?: string; email?: string } | { ok: false; error: string };
 
 async function origin() {
   const h = await headers();
@@ -33,10 +33,25 @@ export async function inviteStudent(input: { email: string; brandName?: string; 
   });
 }
 
-export async function inviteCoach(email: string) {
+/** Coaches live in the admin project (os_members). They get a temporary password and must change it on first sign-in. */
+export async function inviteCoach(email: string, name?: string) {
   return run(async () => {
-    const r = await adminApi<{ token_hash: string; type: string }>({ action: "invite", role: "coach", email });
-    return { ok: true, link: setPasswordLink(await origin(), r.token_hash, r.type) };
+    const r = await adminApi<{ id: string; email: string; password: string }>({ action: "invite-coach", email, name });
+    return { ok: true, email: r.email, password: r.password };
+  });
+}
+
+export async function resetCoachPassword(id: string) {
+  return run(async () => {
+    const r = await adminApi<{ password: string }>({ action: "coach-reset", id });
+    return { ok: true, password: r.password };
+  });
+}
+
+export async function removeCoach(id: string) {
+  return run(async () => {
+    await adminApi({ action: "remove-coach", id });
+    return { ok: true };
   });
 }
 

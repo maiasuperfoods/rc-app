@@ -29,7 +29,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <AuthFrame>
       <h1 className="display text-2xl mb-2">Sign in</h1>
-      <p className="text-sm text-dim mb-6">Use the email your coach invited.</p>
+      <p className="text-sm text-dim mb-6">Students use the email their coach invited. Coaches use their Renaissance OS admin login.</p>
       {sp.error && <div className="rounded-md bg-bad-dim text-bad text-sm px-3 py-2 mb-4">{sp.error}</div>}
       <LoginForm />
     </AuthFrame>
