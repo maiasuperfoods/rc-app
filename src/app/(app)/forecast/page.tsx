@@ -11,7 +11,7 @@ export default async function ForecastPage() {
   return (
     <>
       <PageHeader title="Forecast" subtitle="The cash-flow model as a working tool: a weekly engine from ad-spend ramp to closing cash, with 28-day rebill cohorts, inventory POs, the card float and the PayPal reserve. Change an input and every tab recalculates." />
-      <ForecastWorkbench initial={inputs} isNew={!saved} tenantName={t.name} />
+      <ForecastWorkbench initial={inputs} isNew={!saved} tenantName={t.name} canEdit={ctx.canEdit} />
     </>
   );
 }

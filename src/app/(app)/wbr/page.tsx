@@ -4,15 +4,42 @@ import { Card, Empty, PageHeader, Pill, Stat, fmtMoney, fmtPct, fmtX } from "@/c
 import { SimpleLine } from "@/components/charts";
 import { pctChange } from "@/lib/calc/wbr";
 import { generateCommentary } from "@/lib/llm";
+import Link from "next/link";
+import { defaultForecastInputs, mondayOnOrBefore, runForecast } from "@/lib/calc/forecast";
+import { PacingView } from "./pacing";
 
-export default async function WbrPage() {
+function WbrTabs({ tab }: { tab: "week" | "pacing" }) {
+  const item = (k: "week" | "pacing", label: string) => (
+    <Link href={k === "week" ? "/wbr" : "/wbr?tab=pacing"} className={`px-3 py-2 -mb-px border-b-2 text-sm ${tab === k ? "border-gold text-ink font-medium" : "border-transparent text-dim hover:text-ink"}`}>{label}</Link>
+  );
+  return <nav className="flex gap-1 border-b border-line mb-5" aria-label="Sections">{item("week", "This week")}{item("pacing", "Pacing")}</nav>;
+}
+
+export default async function WbrPage({ searchParams }: { searchParams: Promise<{ tab?: string; w?: string }> }) {
+  const { tab, w } = await searchParams;
   const ctx = await getContext({ requireTenant: true });
   const t = ctx.tenant!;
   const s = await buildSnapshot(ctx.db, t);
+
+  if (tab === "pacing") {
+    const saved = await ctx.db.forecastInputs(t.id);
+    const starter = !saved && ctx.demo;
+    const eightWeeksAgo = shift(s.week.end, -55);
+    const inputs = saved ?? defaultForecastInputs(mondayOnOrBefore(eightWeeksAgo).toISOString().slice(0, 10));
+    return (
+      <>
+        <PageHeader title="Weekly Business Review" subtitle="Pacing: how each week is landing against the plan in your Forecast, above or below target." />
+        <WbrTabs tab="pacing" />
+        <PacingView res={runForecast(inputs)} daily={s.daily} weekParam={w} hasPlan={Boolean(saved) || starter} starter={starter} />
+      </>
+    );
+  }
+
   if (s.daily.length === 0) {
     return (
       <>
         <PageHeader title="Weekly Business Review" />
+        <WbrTabs tab="week" />
         <Empty title="No weeks to review yet" body="Once Shopify and Triple Whale are connected, every Monday you get one page: the numbers, the deltas, and what to do about them." action={{ href: "/integrations", label: "Connect data" }} />
       </>
     );
@@ -48,6 +75,7 @@ export default async function WbrPage() {
   return (
     <>
       <PageHeader title="Weekly Business Review" subtitle={`Week of ${s.week.start} to ${s.week.end}, compared with ${s.week.prevStart} to ${s.week.prevEnd}. Business truth from Triple Whale; creative diagnostics live on the Creative page.`} />
+      <WbrTabs tab="week" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <Stat label="Revenue" value={fmtMoney(m.revenue)} delta={pctChange(m.revenue, p.revenue)} />

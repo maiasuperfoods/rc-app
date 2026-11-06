@@ -1,7 +1,7 @@
 "use client";
+import { CashOverview } from "@/components/forecast/cash-chart";
 import { useMemo, useState, useTransition } from "react";
-import { Card, Field, Pill, Stat, fmtMoney } from "@/components/ui";
-import { SimpleLine } from "@/components/charts";
+import { Card, Field, Pill, fmtMoney } from "@/components/ui";
 import { runForecast, runScenarios, type ForecastInputs, type ForecastResult, type LineInputs, type PoolInputs } from "@/lib/calc/forecast";
 import { saveForecastInputs } from "@/app/actions";
 import { Plus, Trash2 } from "lucide-react";
@@ -24,7 +24,7 @@ const x2 = (n: number) => (n ? `${n.toFixed(2)}×` : "–");
 const pct1 = (n: number) => (n ? `${(n * 100).toFixed(1)}%` : "–");
 const uid = () => Math.random().toString(36).slice(2, 8);
 
-export function ForecastWorkbench({ initial, isNew, tenantName }: { initial: ForecastInputs; isNew: boolean; tenantName: string }) {
+export function ForecastWorkbench({ initial, isNew, tenantName, canEdit = true }: { initial: ForecastInputs; isNew: boolean; tenantName: string; canEdit?: boolean }) {
   const [inp, setInp] = useState<ForecastInputs>(initial);
   const [tab, setTab] = useState<Tab>(isNew ? "inputs" : "cash");
   const [pending, start] = useTransition();
@@ -34,20 +34,14 @@ export function ForecastWorkbench({ initial, isNew, tenantName }: { initial: For
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <Stat label="Lowest cash" value={fmtMoney(res.summary.minCash)} tone={res.summary.minCash < 0 ? "bad" : res.summary.minCash < inp.cashBuffer ? "warn" : "good"} hint={`week of ${res.summary.minCashWeek}`} />
-        <Stat label="Cash at week 13" value={fmtMoney(res.summary.cashAtWeek13)} tone={res.summary.cashAtWeek13 < 0 ? "bad" : "neutral"} hint="end of the first quarter" />
-        <Stat label={`Cash at week ${inp.horizonWeeks}`} value={fmtMoney(res.summary.cashEnd)} tone={res.summary.cashEnd < 0 ? "bad" : "good"} />
-        <Stat label="Peak unpaid card" value={fmtMoney(res.summary.peakCard)} hint={inp.cardLimit ? `limit ${fmtMoney(inp.cardLimit)} · needs ${fmtMoney(res.summary.peakCardUncapped)} uncapped` : "no card float"} tone={inp.cardLimit && res.summary.peakCardUncapped > inp.cardLimit ? "warn" : "neutral"} />
-        <Stat label="First week below buffer" value={res.summary.firstBelowBuffer ?? "never"} tone={res.summary.firstBelowBuffer ? "warn" : "good"} hint={`buffer ${fmtMoney(inp.cashBuffer)}`} />
-      </div>
+      <CashOverview res={res} inp={inp} />
 
       <div className="flex flex-wrap items-center gap-2">
         {TABS.map(([k, l]) => <button key={k} className={`btn ${tab === k ? "btn-primary" : "btn-ghost"}`} onClick={() => setTab(k)}>{l}</button>)}
         <div className="flex-1" />
         {savedAt && <span className="text-xs text-mute">Saved {savedAt}</span>}
-        {isNew && !savedAt && <Pill tone="warn">starter inputs · not saved yet</Pill>}
-        <button className="btn btn-primary" onClick={save} disabled={pending}>{pending ? "Saving…" : "Save model"}</button>
+        {canEdit && isNew && !savedAt && <Pill tone="warn">starter inputs · not saved yet</Pill>}
+        {canEdit ? <button className="btn btn-primary" onClick={save} disabled={pending}>{pending ? "Saving…" : "Save model"}</button> : <Pill tone="mute">read-only · changes here are not saved</Pill>}
       </div>
 
       {tab === "inputs" && <InputsTab inp={inp} set={setInp} />}
@@ -363,9 +357,6 @@ function CashTab({ res, inp }: { res: ForecastResult; inp: ForecastInputs }) {
   ];
   return (
     <div className="space-y-3">
-      <Card title="Closing cash by week" hint={`Buffer ${fmtMoney(inp.cashBuffer)} · lowest point ${fmtMoney(res.summary.minCash)} in the week of ${res.summary.minCashWeek}`}>
-        <SimpleLine data={c.map((x, i) => ({ week: res.weeks[i].start, closing: Math.round(x.closing) }))} x="week" y="closing" label="Closing cash" height={220} />
-      </Card>
       <WeekGrid res={res} rows={rows} firstCol={340} />
     </div>
   );
