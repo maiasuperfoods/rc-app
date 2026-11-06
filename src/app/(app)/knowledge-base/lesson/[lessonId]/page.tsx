@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { flatLessons, getKbLesson, getKbTree, kbHref } from "@/lib/kb";
 import { Crumbs, KbEmpty } from "@/components/kb/bits";
 import { CompleteButton } from "@/components/kb/progress";
+import { PromptCopy } from "@/components/kb/prompt-copy";
 
 /** Course HTML comes from our own kb_lessons table. Open outbound links in a new tab. */
 function prepare(html: string) {
@@ -50,6 +51,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
       {lesson.content.trim() && (
         <div className="kb-prose card px-6 py-7 md:px-10 md:py-9" dangerouslySetInnerHTML={{ __html: prepare(lesson.content) }} />
       )}
+      {lesson.content.includes("kb-prompt") && <PromptCopy lessonId={lesson.id} />}
 
       <div className="mt-8 flex flex-wrap items-center gap-3 justify-between border-t border-line pt-6">
         <div className="flex gap-2">

@@ -316,6 +316,11 @@ select.input {
 .kb-prose code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 0.1rem 0.35rem; }
 .kb-prose pre { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; overflow-x: auto; margin: 1.2rem 0; }
 .kb-prose pre code { border: 0; padding: 0; background: none; }
+.kb-prose .kb-prompt { border: 1px solid var(--line); border-radius: 10px; background: var(--bg); margin: 1.4rem 0; overflow: hidden; }
+.kb-prose .kb-prompt-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; padding: 0.6rem 0.75rem 0.6rem 1rem; border-bottom: 1px solid var(--line); font-size: 0.8rem; color: var(--text-mute); }
+.kb-prose .kb-prompt-copy { flex: none; font-size: 0.8rem; font-weight: 600; color: var(--bg); background: var(--gold); border-radius: 6px; padding: 0.3rem 0.7rem; cursor: pointer; }
+.kb-prose .kb-prompt-copy:hover { background: var(--gold-soft); }
+.kb-prose .kb-prompt-text { margin: 0; border: 0; border-radius: 0; padding: 1rem 1.1rem; max-height: 28rem; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; line-height: 1.6; color: var(--text); }
 .kb-prose table { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: 0.9rem; display: block; overflow-x: auto; }
 .kb-prose th, .kb-prose td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; text-align: left; vertical-align: top; }
 .kb-prose th { color: var(--text); background: var(--bg-elev); font-weight: 600; }
