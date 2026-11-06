@@ -332,6 +332,6 @@ select.input {
 .kb-guide p > strong:first-child { color: var(--gold-soft); }
 .kb-table { overflow-x: auto; margin: 1.2rem 0; border: 1px solid var(--line); border-radius: 8px; }
 .kb-table table { margin: 0; display: table; min-width: 640px; border: 0; }
-.kb-table th, .kb-table td { border: 0; border-bottom: 1px solid var(--line); }
+.kb-table th, .kb-table td { border: 0; border-bottom: 1px solid var(--line); min-width: 9rem; overflow-wrap: normal; word-break: normal; }
 .kb-table tr:last-child td { border-bottom: 0; }
 .kb-table th { position: sticky; top: 0; }
