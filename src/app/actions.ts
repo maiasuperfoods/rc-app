@@ -10,6 +10,7 @@ import type { BrandBook, CostInputs, Offer, OpexLine, Sku, SpendPlan, Supplier, 
 
 async function tenantCtx() {
   const ctx = await getContext({ requireTenant: true });
+  if (!ctx.canEdit) throw new Error("Coaches can view this brand but not change it. Only the student can edit their data.");
   return { ...ctx, tenantId: ctx.tenant!.id };
 }
 
@@ -102,6 +103,7 @@ export async function updateTenant(patch: Partial<Pick<Tenant, "name" | "domain"
 
 export async function createBrand(input: { name: string; domain: string; stage: Tenant["stage"] }) {
   const ctx = await getContext();
+  if (!ctx.demo) throw new Error("Brands are added by your coach. Ask them to invite you to your brand.");
   const t = await ctx.db.createTenant({ name: input.name.trim(), domain: input.domain.trim() || null, stage: input.stage, ownerId: ctx.user.id });
   (await cookies()).set(TENANT_COOKIE, t.id, { path: "/", httpOnly: true, sameSite: "lax" });
   revalidatePath("/", "layout");

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Boxes, Calculator, CalendarCheck, Home, LineChart, Plug, Sparkles, Users } from "lucide-react";
+import { BookOpen, Boxes, Calculator, CalendarCheck, Home, LineChart, Plug, Sparkles, Users, KeyRound } from "lucide-react";
 
 const studentLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -29,9 +29,13 @@ export function NavLinks({ isCoach, hasTenant }: { isCoach: boolean; hasTenant: 
       {isCoach && (
         <>
           <div className="label px-3 pt-4 pb-1">Coaching</div>
-          <Link href="/admin" className={`nav-link ${active("/admin") ? "active" : ""}`}>
+          <Link href="/admin" className={`nav-link ${active("/admin") && !active("/admin/access") ? "active" : ""}`}>
             <Users size={16} strokeWidth={1.75} />
             All students
+          </Link>
+          <Link href="/admin/access" className={`nav-link ${active("/admin/access") ? "active" : ""}`}>
+            <KeyRound size={16} strokeWidth={1.75} />
+            Students &amp; access
           </Link>
         </>
       )}

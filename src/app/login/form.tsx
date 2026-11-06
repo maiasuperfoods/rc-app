@@ -1,26 +1,23 @@
 "use client";
-import { useState } from "react";
-import { supabaseBrowser } from "@/lib/supabase/client";
+
+import { useActionState } from "react";
+import { signInWithPassword } from "./actions";
 
 export function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [msg, setMsg] = useState("");
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setState("sending");
-    const { error } = await supabaseBrowser().auth.signInWithOtp({ email, options: { emailRedirectTo: `${location.origin}/auth/callback` } });
-    if (error) {
-      setState("error");
-      setMsg("We couldn't send the link. Check the email address and try again.");
-    } else setState("sent");
-  };
-  if (state === "sent") return <div className="rounded-md bg-good-dim text-good text-sm px-3 py-2">Check your inbox for the sign-in link.</div>;
+  const [state, action, pending] = useActionState(signInWithPassword, {});
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <input className="input" type="email" required placeholder="you@yourbrand.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-      {msg && <div className="text-xs text-bad">{msg}</div>}
-      <button className="btn btn-primary w-full justify-center" disabled={state === "sending"}>{state === "sending" ? "Sending…" : "Email me a link"}</button>
+    <form action={action} className="space-y-3">
+      <label className="block">
+        <span className="label block mb-1.5">Email</span>
+        <input className="input" type="email" name="email" required autoComplete="email" placeholder="you@yourbrand.com" />
+      </label>
+      <label className="block">
+        <span className="label block mb-1.5">Password</span>
+        <input className="input" type="password" name="password" required autoComplete="current-password" />
+      </label>
+      {state?.error && <div className="text-xs text-bad">{state.error}</div>}
+      <button className="btn btn-primary w-full justify-center" disabled={pending}>{pending ? "Signing in…" : "Sign in"}</button>
+      <p className="text-xs text-mute text-center pt-1">Forgot your password? Ask your coach for a reset link.</p>
     </form>
   );
 }

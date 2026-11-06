@@ -37,8 +37,11 @@ async function edge<T>(qs: string): Promise<T | null> {
   return (await r.json()) as T;
 }
 
+/** Course content lives in the content project; the student project only stores progress. */
+const contentViaEdge = () => isDemoMode() || Boolean(process.env.KB_API_URL);
+
 export const getKbTree = cache(async (): Promise<KbTree> => {
-  if (isDemoMode()) {
+  if (contentViaEdge()) {
     const t = await edge<Omit<KbTree, "configured">>("view=tree");
     return t ? { ...t, configured: true } : EMPTY;
   }
@@ -63,7 +66,7 @@ export const getKbTree = cache(async (): Promise<KbTree> => {
 });
 
 export const getKbLesson = cache(async (id: string): Promise<KbLesson | null> => {
-  if (isDemoMode()) return edge<KbLesson>(`view=lesson&id=${encodeURIComponent(id)}`);
+  if (contentViaEdge()) return edge<KbLesson>(`view=lesson&id=${encodeURIComponent(id)}`);
   const sb = await supabaseServer();
   const { data: l } = await sb.from("kb_lessons").select("id,chapter_id,title,content,video_url,video_path,order").eq("id", id).maybeSingle();
   if (!l) return null;

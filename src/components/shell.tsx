@@ -60,7 +60,14 @@ export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false
         )}
         {standalone && ctx.demo && <div className="pb-4" />}
       </aside>
-      <main className="px-5 py-6 md:px-10 md:py-8 max-w-[1400px] w-full min-w-0">{children}</main>
+      <main className="px-5 py-6 md:px-10 md:py-8 max-w-[1400px] w-full min-w-0">
+        {!ctx.demo && ctx.isCoach && ctx.tenant && !ctx.canEdit && !standalone && (
+          <div className="mb-5 rounded-md border border-gold/30 bg-gold-dim px-4 py-2.5 text-sm text-gold-soft">
+            Viewing <span className="font-medium">{ctx.tenant.name}</span> as a coach: read-only. Numbers come from the student&apos;s own data and connections.
+          </div>
+        )}
+        {children}
+      </main>
     </div>
     </KbProgressProvider>
   );

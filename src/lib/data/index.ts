@@ -25,6 +25,8 @@ export interface AppContext {
   tenants: Tenant[]; // tenants this user can switch between
   tenant: Tenant | null; // the active tenant
   demo: boolean;
+  /** Only a student on their own brand may change its data. Coaches see every brand read-only. */
+  canEdit: boolean;
 }
 
 /** Resolves the signed-in user and the active tenant. Redirects to /login when signed out. */
@@ -38,7 +40,9 @@ export async function getContext(opts: { requireTenant?: boolean } = {}): Promis
   const wanted = c.get(TENANT_COOKIE)?.value;
   const tenant = tenants.find((t) => t.id === wanted) ?? tenants[0] ?? null;
   if (opts.requireTenant && !tenant) redirect("/onboarding");
-  return { db, user, memberships, isCoach, tenants, tenant, demo: isDemoMode() };
+  const demo = isDemoMode();
+  const canEdit = Boolean(tenant) && (demo || memberships.some((m) => m.tenantId === tenant!.id));
+  return { db, user, memberships, isCoach, tenants, tenant, demo, canEdit };
 }
 
 export async function requireCoach(): Promise<AppContext> {
