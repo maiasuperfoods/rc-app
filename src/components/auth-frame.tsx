@@ -2,7 +2,7 @@ import { Logo } from "@/components/logo";
 import { getTheme } from "@/lib/theme";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-/** Centered card used by sign-in, set-password and first-time setup. */
+/** Centered card used by sign-in and set-password. */
 export async function AuthFrame({ children }: { children: React.ReactNode }) {
   const theme = await getTheme();
   return (

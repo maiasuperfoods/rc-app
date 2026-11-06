@@ -52,9 +52,12 @@ export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false
           {ctx.demo ? (
             <div className="mt-2 pill pill-gold">Demo data</div>
           ) : (
-            <form action="/auth/signout" method="post" className="mt-2">
-              <button className="text-dim hover:text-ink">Sign out</button>
-            </form>
+            <div className="mt-2 flex items-center gap-3">
+              <Link href="/auth/set-password" className="text-dim hover:text-ink">Change password</Link>
+              <form action="/auth/signout" method="post">
+                <button className="text-dim hover:text-ink">Sign out</button>
+              </form>
+            </div>
           )}
         </div>
         )}
