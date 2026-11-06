@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowUpRight, Newspaper, Repeat } from "lucide-react";
+import { ArrowUpRight, Clapperboard, Newspaper, Repeat } from "lucide-react";
+import { VIDEO_AD_GUIDES } from "@/lib/video-ads";
 import { getPpuList, getPresaleList, resHref } from "@/lib/resources";
 import { Crumbs, KbTitle } from "@/components/kb/bits";
 
@@ -24,13 +25,21 @@ export default async function ResourcesHub() {
       body: "How successful brands use post-purchase upsell videos to raise AOV: funnels, offers, full scripts and the psychology behind them.",
       meta: `${ppu.length} brand dossiers · ${ppu.reduce((n, b) => n + b.upsell_count, 0)} upsells`,
     },
+    {
+      href: "/resources/video-ads",
+      icon: Clapperboard,
+      title: "Video Ads",
+      kicker: "Guides",
+      body: "The 11 video ad formats we run and how each converts, plus how to hire the editors who cut them.",
+      meta: `${VIDEO_AD_GUIDES.length} guides`,
+    },
   ];
   return (
     <div className="max-w-5xl">
       <Crumbs items={[{ label: "Resources" }]} />
       <KbTitle title="Resources" sub="Swipe files and teardowns to study alongside the course." />
       <div className="hairline mb-8" />
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {cards.map((c) => (
           <Link key={c.href} href={c.href} className="group card p-6 flex flex-col transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-[0_10px_40px_-12px_rgba(201,169,97,0.25)]">
             <div className="flex items-center justify-between mb-6">

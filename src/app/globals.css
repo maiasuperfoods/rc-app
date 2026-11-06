@@ -320,3 +320,13 @@ select.input {
 .kb-prose th, .kb-prose td { border: 1px solid var(--line); padding: 0.5rem 0.7rem; text-align: left; vertical-align: top; }
 .kb-prose th { color: var(--text); background: var(--bg-elev); font-weight: 600; }
 .kb-prose iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 8px; margin: 1.2rem 0; }
+
+/* Long-form guides (Resources → Video Ads) */
+.kb-guide h2 { scroll-margin-top: 1.5rem; padding-top: 1.6rem; border-top: 1px solid var(--line); }
+.kb-guide > h2:first-child { border-top: 0; padding-top: 0; }
+.kb-guide p > strong:first-child { color: var(--gold-soft); }
+.kb-table { overflow-x: auto; margin: 1.2rem 0; border: 1px solid var(--line); border-radius: 8px; }
+.kb-table table { margin: 0; display: table; min-width: 640px; border: 0; }
+.kb-table th, .kb-table td { border: 0; border-bottom: 1px solid var(--line); }
+.kb-table tr:last-child td { border-bottom: 0; }
+.kb-table th { position: sticky; top: 0; }
