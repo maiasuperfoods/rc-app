@@ -367,8 +367,15 @@ function CashTab({ res, inp }: { res: ForecastResult; inp: ForecastInputs }) {
 function MonthlyTab({ res, inp }: { res: ForecastResult; inp: ForecastInputs }) {
   const M = res.months;
   const lines = res.lines;
-  const row = (label: string, f: (m: (typeof M)[number]) => string | number, cls = "") => (
-    <tr key={label}><td className={`text-dim ${cls}`}>{label}</td>{M.map((m) => { const v = f(m); return <td key={m.month} className={`num ${cls}`}>{typeof v === "number" ? m0(v) : v}</td>; })}</tr>
+  const row = (label: string, f: (m: (typeof M)[number]) => string | number, cls = "", signal = false) => (
+    <tr key={label}>
+      <td className={`text-dim ${cls}`}>{label}</td>
+      {M.map((m) => {
+        const v = f(m);
+        const tone = signal && typeof v === "number" ? (v > 0 ? "bg-good-dim text-good" : v < 0 ? "bg-bad-dim text-bad" : "") : "";
+        return <td key={m.month} className={`num ${cls} ${tone}`}>{typeof v === "number" ? m0(v) : v}</td>;
+      })}
+    </tr>
   );
   const section = (label: string) => <tr key={label} className="bg-elev"><td className="font-medium text-gold-soft">{label}</td><td colSpan={M.length} /></tr>;
   return (
@@ -398,10 +405,10 @@ function MonthlyTab({ res, inp }: { res: ForecastResult; inp: ForecastInputs }) 
             {row("COGS (units shipped × landed cost)", (m) => -m.cogs)}
             {row("Fulfillment", (m) => -m.fulfillment)}
             {row("Ad spend", (m) => -m.spend)}
-            {row("Contribution margin", (m) => m.contribution, "font-medium")}
+            {row("Contribution margin", (m) => m.contribution, "font-medium", true)}
             {row("Additional hires ($/month, cumulative)", (m) => m.strategists)}
             {row(`Opex (fixed + hires + ${Math.round(inp.variableOpexRate * 100)}% of spend)`, (m) => -m.opex)}
-            {row("Operating profit", (m) => m.operatingProfit, "font-medium")}
+            {row("Operating profit", (m) => m.operatingProfit, "font-medium", true)}
             {row("Operating margin %", (m) => pct1(m.operatingMargin))}
             {section("Cash")}
             {row("Payouts received", (m) => m.payouts)}
