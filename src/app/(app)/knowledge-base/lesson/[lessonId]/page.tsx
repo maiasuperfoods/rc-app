@@ -6,6 +6,8 @@ import { Crumbs, KbEmpty } from "@/components/kb/bits";
 import { CompleteButton } from "@/components/kb/progress";
 import { PromptCopy } from "@/components/kb/prompt-copy";
 import { Pencil } from "lucide-react";
+import { VideoPlayer } from "@/components/kb/video-player";
+import { VideoSlot } from "@/components/kb/video-slot";
 import { isKbAdmin } from "@/lib/kb-admin";
 
 /** Course HTML comes from our own kb_lessons table. Open outbound links in a new tab. */
@@ -49,9 +51,10 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
 
       {lesson.video && (
         <div className="mb-8 rounded-[var(--radius)] overflow-hidden border border-line bg-black shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)]">
-          <video key={lesson.id} src={`${lesson.video}#t=0.5`} controls playsInline preload="metadata" controlsList="nodownload" className="w-full aspect-video bg-black" />
+          <VideoPlayer key={lesson.id} src={lesson.video} title={lesson.title} />
         </div>
       )}
+      {admin && <VideoSlot lessonId={lesson.id} hasVideo={Boolean(lesson.video)} />}
 
       {lesson.content.trim() && (
         <div className="kb-prose card px-6 py-7 md:px-10 md:py-9" dangerouslySetInnerHTML={{ __html: prepare(lesson.content) }} />

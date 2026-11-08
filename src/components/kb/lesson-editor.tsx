@@ -15,6 +15,7 @@ import {
 import { kbUpdate, kbUploadUrl } from "@/app/(app)/knowledge-base/admin/actions";
 import { MAX_UPLOAD_BYTES, uploadToSignedUrl } from "@/components/resources/upload";
 import { mediaSrc } from "@/lib/media";
+import { VideoPlayer } from "@/components/kb/video-player";
 
 export interface EditableLesson {
   id: string;
@@ -334,17 +335,17 @@ export function LessonEditor({ lesson, backHref }: { lesson: EditableLesson; bac
       <section className="card p-4 space-y-3">
         <div className="flex items-center gap-2 text-sm text-ink font-medium"><Video size={15} className="text-gold" /> Video</div>
         {lesson.video ? (
-          <video key={lesson.video} src={`${lesson.video}#t=0.5`} controls preload="metadata" className="w-full max-w-xl rounded-md border border-line bg-black aspect-video" />
+          <div className="max-w-xl rounded-md overflow-hidden border border-line"><VideoPlayer key={lesson.video} src={lesson.video} title={title} /></div>
         ) : (
           <p className="text-sm text-dim">No video on this lesson.</p>
         )}
         <div className="flex flex-wrap items-center gap-2">
           <button type="button" className="btn btn-secondary !py-1.5 !text-xs" disabled={busy} onClick={() => vidInput.current?.click()}><Upload size={13} /> {lesson.video ? "Replace with a file" : "Upload a video file"}</button>
           {lesson.video && <button type="button" className="btn btn-ghost !py-1.5 !text-xs text-bad" disabled={busy} onClick={() => saveVideo({ video_path: null, video_url: null }, "Video removed.")}>Remove video</button>}
-          <span className="text-xs text-mute">MP4 or WebM, up to 50 MB.</span>
+          <span className="text-xs text-mute">MP4 or WebM, up to 50 MB. Bigger videos: put them on YouTube (unlisted), Vimeo or Loom and paste the link.</span>
         </div>
         <form className="flex flex-wrap gap-2" onSubmit={(e) => { e.preventDefault(); saveVideo({ video_path: null, video_url: videoUrl.trim() || null }, videoUrl.trim() ? "Video link saved." : "Video removed."); }}>
-          <input className="input flex-1 min-w-60 !text-sm" placeholder="Or paste a direct link to a video file (https://…/video.mp4)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+          <input className="input flex-1 min-w-60 !text-sm" placeholder="Or paste a YouTube, Vimeo, Loom or Google Drive link, or a link to an .mp4 file" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
           <button className="btn btn-ghost !py-1.5 !text-xs" disabled={busy}>Use link</button>
         </form>
       </section>
