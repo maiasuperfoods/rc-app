@@ -55,6 +55,14 @@ export async function removeCoach(id: string) {
   });
 }
 
+/** Creates (or resets) the invented demo brand and its demo student, so coaches can show the student side with realistic data. */
+export async function seedDemoBrand() {
+  return run(async () => {
+    const r = await adminApi<{ email: string; password: string; name: string }>({ action: "seed-demo" });
+    return { ok: true, email: r.email, password: r.password, note: `${r.name} is ready. Sign in as the demo student with these details, or pick it in the brand switcher.` };
+  });
+}
+
 export async function resetLink(email: string) {
   return run(async () => {
     const r = await adminApi<{ token_hash: string; type: string }>({ action: "reset", email });

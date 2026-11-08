@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, KeyRound, Link2, Plus, Trash2, UserPlus } from "lucide-react";
-import { inviteCoach, inviteStudent, removeCoach, removeStudent, resetCoachPassword, resetLink } from "./actions";
+import { Check, Copy, FlaskConical, KeyRound, Link2, Plus, Trash2, UserPlus } from "lucide-react";
+import { inviteCoach, inviteStudent, removeCoach, removeStudent, resetCoachPassword, resetLink, seedDemoBrand } from "./actions";
 
 type Person = { user_id: string; email?: string; name?: string; last_sign_in_at?: string | null };
 export type Coach = { id: string; email: string; name: string; role: "admin" | "coach"; must_change: boolean; last_sign_in_at: string | null };
@@ -47,13 +47,13 @@ function LinkBox({ link, note, onClose }: { link: string; note?: string; onClose
 }
 
 /** Shows a temporary password once, to pass on to a coach. They must change it when they first sign in. */
-function PasswordBox({ email, password, onClose }: { email: string; password: string; onClose: () => void }) {
+function PasswordBox({ email, password, note, onClose }: { email: string; password: string; note?: string; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
   const text = `Sign in at ${typeof window !== "undefined" ? window.location.origin : ""}/login\nEmail: ${email}\nTemporary password: ${password}`;
   return (
     <div className="card-elev border border-gold/40 p-4 mt-4">
       <div className="flex items-center gap-2 text-sm text-ink font-medium mb-1"><KeyRound size={14} className="text-gold" /> Temporary password for {email}</div>
-      <p className="text-xs text-dim mb-3">Send it to them privately. It only works until they sign in and pick their own password. It is shown once.</p>
+      <p className="text-xs text-dim mb-3">{note ?? "Send it to them privately. It only works until they sign in and pick their own password. It is shown once."}</p>
       <div className="flex gap-2">
         <input readOnly value={password} className="input font-mono text-sm" onFocus={(e) => e.currentTarget.select()} />
         <button
@@ -78,7 +78,8 @@ export function AccessManager({ data }: { data: AccessData }) {
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const [link, setLink] = useState<{ link: string; note?: string; at: string } | null>(null);
-  const [pw, setPw] = useState<{ email: string; password: string } | null>(null);
+  const [pw, setPw] = useState<{ email: string; password: string; note?: string } | null>(null);
+  const [demoPw, setDemoPw] = useState<{ email: string; password: string; note?: string } | null>(null);
   const [newBrand, setNewBrand] = useState({ name: "", email: "" });
   const [addTo, setAddTo] = useState<string | null>(null);
   const [addEmail, setAddEmail] = useState("");
@@ -92,7 +93,7 @@ export function AccessManager({ data }: { data: AccessData }) {
       const r = await fn();
       if (!r.ok) return setErr(r.error ?? "Failed");
       if (r.link) setLink({ link: r.link, note: r.note, at });
-      if (r.password) setPw({ email: r.email ?? at, password: r.password });
+      if (r.password) (at === "__demo" ? setDemoPw : setPw)({ email: r.email ?? at, password: r.password, note: r.note });
       after?.();
       router.refresh();
     });
@@ -165,6 +166,18 @@ export function AccessManager({ data }: { data: AccessData }) {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="card p-5">
+        <h2 className="text-sm font-medium text-ink mb-1 flex items-center gap-2"><FlaskConical size={14} className="text-gold" /> Demo brand</h2>
+        <p className="text-xs text-dim mb-3">
+          Glowbright Labs (demo) is an invented brand with four months of orders, ads, cohorts, inventory and a forecast. Use it to show the student side or to try the tools without a real store.
+          Creating it again resets its data and gives the demo student a new password.
+        </p>
+        <button type="button" className="btn btn-secondary" disabled={pending} onClick={() => act("__demo", () => seedDemoBrand())}>
+          <FlaskConical size={14} /> {data.brands.some((b) => b.name.endsWith("(demo)")) ? "Reset demo brand" : "Create demo brand"}
+        </button>
+        {demoPw && <PasswordBox {...demoPw} onClose={() => setDemoPw(null)} />}
       </section>
 
       <section className="card p-5">
