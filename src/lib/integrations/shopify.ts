@@ -1,8 +1,19 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import type { CohortRow, DailyBusinessMetrics, InventoryPosition, Product, Sku } from "@/lib/types";
 import { plainError, type Connector, type Credentials, type ShopifySync } from "./types";
 
 const API_VERSION = "2025-10";
-export const SHOPIFY_SCOPES = ["read_orders", "read_all_orders", "read_products", "read_inventory", "read_locations", "read_customers"].join(",");
+/**
+ * Least-privilege scope set. Every scope here is exercised by the queries below:
+ *   read_orders / read_all_orders  revenue, refunds, COGS, cohorts (history beyond 60 days)
+ *   read_products / read_inventory products, variants, unit cost, on-hand quantities
+ *   read_customers                order.customer { id, numberOfOrders } only — never name, email,
+ *                                 phone or address. Needed to group orders into LTV cohorts and to
+ *                                 tell new from returning customers. Protected customer data: Level 1.
+ * read_locations is deliberately absent: inventory levels are summed without reading the location.
+ */
+export const SHOPIFY_SCOPE_LIST = ["read_orders", "read_all_orders", "read_products", "read_inventory", "read_customers"] as const;
+export const SHOPIFY_SCOPES = SHOPIFY_SCOPE_LIST.join(",");
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -30,6 +41,41 @@ async function gql<T = any>(shop: string, token: string, query: string, variable
     return json.data as T;
   }
   throw new Error("shopify throttled");
+}
+
+/** A real myshopify domain, lower-cased. Returns null for anything else, so no attacker-supplied host is ever called. */
+export function shopifyCleanShop(raw: string | null | undefined): string | null {
+  const clean = String(raw ?? "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  return /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(clean) ? clean : null;
+}
+
+/**
+ * Verifies the `hmac` Shopify appends to install and callback URLs (all other query params,
+ * sorted, joined as key=value pairs). Constant-time comparison.
+ */
+export function shopifyVerifyQueryHmac(params: URLSearchParams): boolean {
+  const secret = process.env.SHOPIFY_CLIENT_SECRET;
+  const hmac = params.get("hmac");
+  if (!secret || !hmac) return false;
+  const message = [...params.entries()]
+    .filter(([k]) => k !== "hmac" && k !== "signature")
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([k, v]) => `${k}=${v}`)
+    .join("&");
+  const digest = createHmac("sha256", secret).update(message).digest("hex");
+  const a = Buffer.from(digest, "utf8");
+  const b = Buffer.from(hmac, "utf8");
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/** Verifies a webhook body against the X-Shopify-Hmac-Sha256 header (base64 digest of the raw body). */
+export function shopifyVerifyWebhook(rawBody: string, header: string | null): boolean {
+  const secret = process.env.SHOPIFY_CLIENT_SECRET;
+  if (!secret || !header) return false;
+  const digest = createHmac("sha256", secret).update(rawBody, "utf8").digest("base64");
+  const a = Buffer.from(digest, "utf8");
+  const b = Buffer.from(header, "utf8");
+  return a.length === b.length && timingSafeEqual(a, b);
 }
 
 /** OAuth helpers used by the API routes. */

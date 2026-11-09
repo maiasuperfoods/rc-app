@@ -2,6 +2,7 @@ import { getContext } from "@/lib/data";
 import { Card, PageHeader, Pill, timeAgo } from "@/components/ui";
 import type { IntegrationStatus } from "@/lib/types";
 import { ConnectButton } from "./connect";
+import { PendingShopifyInstall } from "./pending";
 
 const PROVIDERS: Record<IntegrationStatus["provider"], { name: string; what: string; feeds: string; auth: "oauth" | "key"; must: boolean }> = {
   shopify: { name: "Shopify", what: "Orders, products, inventory, refunds", feeds: "Unit Economics, Weekly Review, Inventory", auth: "oauth", must: true },
@@ -17,6 +18,7 @@ export default async function IntegrationsPage() {
   const statuses = await ctx.db.integrations(t.id);
   return (
     <>
+      <PendingShopifyInstall ctx={ctx} />
       <PageHeader title="Connections" subtitle="Connect each system once. Keys are stored encrypted and never shown again. If something stops syncing you'll see a plain-language banner here and your coach gets a heads-up." />
       <div className="grid md:grid-cols-2 gap-4">
         {statuses.map((s) => {

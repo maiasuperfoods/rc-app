@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { randomBytes } from "node:crypto";
 import { getContext } from "@/lib/data";
-import { shopifyAuthUrl } from "@/lib/integrations/shopify";
+import { shopifyAuthUrl, shopifyCleanShop } from "@/lib/integrations/shopify";
 import { metaAuthUrl } from "@/lib/integrations/meta";
 
 /** Starts an OAuth flow. Shopify needs the shop domain (?shop=); Meta does not. */
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
   const url = new URL(req.url);
   const state = randomBytes(16).toString("hex");
   const c = await cookies();
-  c.set("rc_oauth_state", JSON.stringify({ state, tenantId: ctx.tenant!.id, ret: url.searchParams.get("return") ?? "/integrations" }), { httpOnly: true, sameSite: "lax", path: "/", maxAge: 600 });
+  c.set("rc_oauth_state", JSON.stringify({ state, tenantId: ctx.tenant!.id, ret: url.searchParams.get("return") ?? "/integrations" }), { httpOnly: true, secure: true, sameSite: "lax", path: "/", maxAge: 600 });
   const redirectUri = `${process.env.APP_URL ?? url.origin}/api/integrations/${provider}/callback`;
 
   if (provider === "shopify") {
@@ -25,8 +25,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
         { headers: { "content-type": "text/html" } },
       );
     }
-    const clean = shop.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-    if (!/^[a-z0-9-]+\.myshopify\.com$/.test(clean)) return NextResponse.redirect(new URL("/integrations?error=That doesn't look like a .myshopify.com address.", req.url));
+    const clean = shopifyCleanShop(shop);
+    if (!clean) return NextResponse.redirect(new URL(`/integrations?error=${encodeURIComponent("That doesn't look like a .myshopify.com address.")}`, req.url));
     return NextResponse.redirect(shopifyAuthUrl(clean, state, redirectUri));
   }
   if (provider === "meta") return NextResponse.redirect(metaAuthUrl(state, redirectUri));
