@@ -90,7 +90,7 @@ export class DemoSource implements DataSource {
     return store().tenants.find((t) => t.id === id) ?? null;
   }
   async createTenant(input: { name: string; domain: string | null; stage: Tenant["stage"]; ownerId: string }) {
-    const t: Tenant = { id: `t-${Date.now()}`, name: input.name, domain: input.domain, logoUrl: null, stage: input.stage, tier: "ic", currency: "USD", timezone: "America/New_York", createdAt: new Date().toISOString(), onboardingComplete: false };
+    const t: Tenant = { id: `t-${Date.now()}`, name: input.name, domain: input.domain, logoUrl: null, stage: input.stage, tier: "ic", currency: "USD", timezone: "America/New_York", createdAt: new Date().toISOString(), onboardingComplete: false, pcStudentId: null };
     store().tenants.push(t);
     return t;
   }

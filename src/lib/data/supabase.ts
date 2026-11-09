@@ -31,7 +31,7 @@ type Row = Record<string, any>;
 const num = (v: unknown) => (v == null ? 0 : Number(v));
 
 function mapTenant(r: Row): Tenant {
-  return { id: r.id, name: r.name, domain: r.domain, logoUrl: r.logo_url, stage: r.stage, tier: r.tier, currency: r.currency, timezone: r.timezone, createdAt: r.created_at, onboardingComplete: r.onboarding_complete };
+  return { id: r.id, name: r.name, domain: r.domain, logoUrl: r.logo_url, stage: r.stage, tier: r.tier, currency: r.currency, timezone: r.timezone, createdAt: r.created_at, onboardingComplete: r.onboarding_complete, pcStudentId: r.pc_student_id ?? null };
 }
 
 export class SupabaseSource implements DataSource {

@@ -16,6 +16,8 @@ export interface Tenant {
   timezone: string;
   createdAt: string;
   onboardingComplete: boolean;
+  /** Private Circle student id in the admin project, when this brand came from the coaching program. */
+  pcStudentId: string | null;
 }
 
 export interface Membership {

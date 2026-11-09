@@ -43,9 +43,9 @@ export const DEMO_USER = { id: "demo-user", email: "you@example.com", name: "Dem
 export const DEMO_COACH = { id: "demo-coach", email: "coach@example.com", name: "Coach" };
 
 export const demoTenants: Tenant[] = [
-  { id: "t-glowbright", name: "Glowbright Labs", domain: "glowbrightlabs.com", logoUrl: null, stage: "validation", tier: "ic", currency: "USD", timezone: "America/New_York", createdAt: iso(daysAgo(140)), onboardingComplete: true },
-  { id: "t-harborpine", name: "Harbor & Pine", domain: "harborandpine.co", logoUrl: null, stage: "acceleration", tier: "ic", currency: "USD", timezone: "America/Los_Angeles", createdAt: iso(daysAgo(220)), onboardingComplete: true },
-  { id: "t-ridgeline", name: "Ridgeline Supply", domain: "ridgelinesupply.com", logoUrl: null, stage: "grind", tier: "ic", currency: "USD", timezone: "America/Chicago", createdAt: iso(daysAgo(30)), onboardingComplete: false },
+  { id: "t-glowbright", name: "Glowbright Labs", domain: "glowbrightlabs.com", logoUrl: null, stage: "validation", tier: "ic", currency: "USD", timezone: "America/New_York", createdAt: iso(daysAgo(140)), onboardingComplete: true, pcStudentId: null },
+  { id: "t-harborpine", name: "Harbor & Pine", domain: "harborandpine.co", logoUrl: null, stage: "acceleration", tier: "ic", currency: "USD", timezone: "America/Los_Angeles", createdAt: iso(daysAgo(220)), onboardingComplete: true, pcStudentId: null },
+  { id: "t-ridgeline", name: "Ridgeline Supply", domain: "ridgelinesupply.com", logoUrl: null, stage: "grind", tier: "ic", currency: "USD", timezone: "America/Chicago", createdAt: iso(daysAgo(30)), onboardingComplete: false, pcStudentId: null },
 ];
 
 export const demoProducts: Product[] = [
