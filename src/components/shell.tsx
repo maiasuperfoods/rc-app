@@ -19,7 +19,7 @@ export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false
           <Link href={standalone ? "/knowledge-base" : "/"} className="flex items-center gap-3">
             <Logo className="h-8 w-8" />
             <div className="leading-tight">
-              <div className="text-[0.95rem] font-serif text-cream">
+              <div className="text-[0.95rem] wordmark text-cream">
                 Ren<span className="text-gold italic">ai</span>ssance
               </div>
               <div className="text-[0.6rem] tracking-[0.2em] text-dim uppercase">{standalone ? "Knowledge Base" : "Commerce"}</div>

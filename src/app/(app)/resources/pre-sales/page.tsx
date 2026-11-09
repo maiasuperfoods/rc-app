@@ -37,12 +37,12 @@ export default async function PreSalesVault({ searchParams }: { searchParams: Pr
         </div>
       </div>
 
-      <h1 className="display text-[2.2rem] md:text-[2.8rem] leading-[1.08]">
+      <h1 className="display text-4xl leading-10 md:text-5xl md:leading-none">
         The <span className="italic text-gold">Pre-Sales</span> Vault
       </h1>
       <p className="text-dim mt-2 max-w-2xl">Winning advertorials and pre-sale pages, deconstructed. Study how top e-commerce brands warm cold traffic before the sales page.</p>
       <blockquote className="mt-6 mb-8 max-w-xl border-l-2 border-gold/50 pl-4">
-        <p className="font-serif italic text-[1.05rem] text-ink/85 leading-relaxed">“{q.quote}”</p>
+        <p className="display-quote text-[1.25rem] text-ink/85 leading-[1.5]">“{q.quote}”</p>
         <footer className="label mt-2">— {q.author}</footer>
       </blockquote>
 
@@ -70,7 +70,7 @@ export default async function PreSalesVault({ searchParams }: { searchParams: Pr
           {list.map((b) => (
             <article key={b.id} className="group card flex flex-col overflow-hidden transition-[transform,border-color] duration-300 hover:-translate-y-0.5 hover:border-gold/40">
               <Link href={resHref.presaleBrand(b.slug)} className="flex flex-col flex-1 p-5">
-                <h2 className="display text-[1.45rem] leading-tight mb-3 group-hover:text-gold-soft transition-colors">{b.brand_name}</h2>
+                <h2 className="title text-xl leading-7 mb-3 group-hover:text-gold-soft transition-colors">{b.brand_name}</h2>
                 <div className="relative h-40 rounded-md overflow-hidden border border-line bg-bg mb-4">
                   {mediaSrc("res-media", b.thumbnail_path) ? (
                     <Image src={mediaSrc("res-media", b.thumbnail_path)!} alt="" fill quality={60} sizes="(min-width: 1536px) 22vw, (min-width: 1280px) 30vw, (min-width: 640px) 45vw, 92vw" className="object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]" />

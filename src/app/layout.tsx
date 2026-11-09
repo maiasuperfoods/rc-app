@@ -3,8 +3,10 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { getTheme } from "@/lib/theme";
 
-// Self-hosted so the build never depends on Google Fonts being reachable.
-const inter = localFont({ src: "../fonts/inter.woff2", variable: "--font-inter", display: "swap", weight: "100 900" });
+// Renaissance Commerce font system: Satoshi for body and interface, Canela Light Italic for display
+// headlines (Canela is registered in globals.css). Self-hosted so the build never depends on a font CDN.
+const satoshi = localFont({ src: "../fonts/Satoshi-Variable.woff2", variable: "--font-satoshi", display: "swap", weight: "300 900" });
+// Playfair is kept only for the typed "Renaissance Commerce" lockup, so the logo stays exactly as it was.
 const playfair = localFont({
   src: [
     { path: "../fonts/playfair.woff2", style: "normal", weight: "400 900" },
@@ -22,7 +24,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = await getTheme();
   return (
-    <html lang="en" data-theme={theme} className={`${inter.variable} ${playfair.variable}`}>
+    <html lang="en" data-theme={theme} className={`${satoshi.variable} ${playfair.variable}`}>
       <body>{children}</body>
     </html>
   );

@@ -44,7 +44,7 @@ export default async function LessonPage({ params }: { params: Promise<{ lessonI
       <header className="mb-6">
         {n > 0 && <div className="label mb-2">Lesson {n} of {pos.length}</div>}
         <div className="flex items-start justify-between gap-4">
-          <h1 className="display text-[1.9rem] md:text-[2.5rem] leading-[1.12]">{lesson.title}</h1>
+          <h1 className="display text-3xl leading-9 md:text-[2.75rem] md:leading-[3rem]">{lesson.title}</h1>
           {admin && <Link href={kbHref.edit(lesson.id)} className="btn btn-primary !py-1.5 !text-xs shrink-0 mt-2"><Pencil size={13} /> Edit lesson</Link>}
         </div>
       </header>

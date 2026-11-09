@@ -38,7 +38,7 @@ export function PacingView({ res, daily, weekParam, hasPlan, starter }: { res: F
   if (!hasPlan) {
     return (
       <div className="card-elev p-8 text-center max-w-2xl mx-auto">
-        <div className="display text-xl mb-2">No plan to pace against yet</div>
+        <div className="title text-xl mb-2">No plan to pace against yet</div>
         <p className="text-sm text-dim mb-5">Pacing compares every week with the plan in your Forecast: ad spend, new customers, returning orders and revenue. Set up the Forecast and save it, and this tab fills in from your Shopify and Triple Whale numbers.</p>
         <Link href="/forecast" className="btn btn-primary">Open the Forecast</Link>
       </div>

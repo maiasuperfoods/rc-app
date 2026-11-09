@@ -47,7 +47,7 @@ function Editor({ brand, onClose }: { brand: PresaleBrand; onClose: () => void }
       <div className="flex items-start justify-between gap-3 mb-5">
         <div>
           <div className="label mb-1">{brand.status === "draft" ? "Draft — review before publishing" : "Published — editing"}</div>
-          <h2 className="display text-2xl">{brand.brand_name}</h2>
+          <h2 className="title text-2xl">{brand.brand_name}</h2>
         </div>
         <button type="button" className="btn btn-ghost !p-2" onClick={onClose} aria-label="Close editor"><X size={15} /></button>
       </div>

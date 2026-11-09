@@ -53,7 +53,7 @@ export default async function KnowledgeBasePage() {
                 <span className="absolute left-4 top-4 pill pill-gold backdrop-blur-sm">{String(i + 1).padStart(2, "0")}</span>
               </div>
               <div className="px-5 pb-5 -mt-2 relative">
-                <h2 className="display text-[1.35rem] leading-snug group-hover:text-gold-soft transition-colors">{cat.title}</h2>
+                <h2 className="title text-xl leading-7 group-hover:text-gold-soft transition-colors">{cat.title}</h2>
                 <div className="text-xs text-mute mt-1.5 flex items-center gap-2">
                   <span>
                     {plural(s.chapters, "chapter")} · {plural(s.lessons, "lesson")}

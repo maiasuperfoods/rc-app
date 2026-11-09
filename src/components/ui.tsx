@@ -20,7 +20,7 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   return (
     <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
-        <h1 className="display text-3xl md:text-[2.1rem] leading-tight">{title}</h1>
+        <h1 className="display text-4xl leading-10 md:text-[2.75rem] md:leading-[3rem]">{title}</h1>
         {subtitle && <p className="text-dim text-sm mt-1 max-w-2xl">{subtitle}</p>}
       </div>
       {actions && <div className="flex gap-2 items-center">{actions}</div>}
@@ -34,7 +34,7 @@ export function Card({ title, children, className = "", actions, hint }: { title
       {(title || actions) && (
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
-            {title && <h2 className="text-sm font-medium text-ink">{title}</h2>}
+            {title && <h2 className="text-sm font-semibold text-ink">{title}</h2>}
             {hint && <p className="text-xs text-mute mt-0.5">{hint}</p>}
           </div>
           {actions}
@@ -51,7 +51,7 @@ export function Stat({ label, value, delta, tone, hint, formula, lowerIsBetter =
   return (
     <div className="card p-4" title={formula}>
       <div className="label">{label}</div>
-      <div className={`text-2xl font-medium mt-1 tabular-nums ${toneClass}`}>{value}</div>
+      <div className={`text-2xl font-bold mt-1 tabular-nums ${toneClass}`}>{value}</div>
       {delta != null && Number.isFinite(delta) && (
         <div className={`text-xs mt-1 ${deltaGood ? "text-good" : "text-bad"}`}>
           {delta >= 0 ? "▲" : "▼"} {Math.abs(delta * 100).toFixed(0)}% vs last week
@@ -69,7 +69,7 @@ export function Pill({ tone, children }: { tone: "good" | "warn" | "bad" | "info
 export function Empty({ title, body, action }: { title: string; body: string; action?: { href: string; label: string } }) {
   return (
     <div className="card-elev p-10 text-center">
-      <div className="display text-xl">{title}</div>
+      <div className="title text-xl">{title}</div>
       <p className="text-dim text-sm mt-2 max-w-md mx-auto">{body}</p>
       {action && (
         <Link href={action.href} className="btn btn-primary mt-5">

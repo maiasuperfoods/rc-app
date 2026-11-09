@@ -19,7 +19,7 @@ export default async function PresaleAdminPage({ searchParams }: { searchParams:
         {crumbs}
         <div className="card p-8 text-center">
           <Lock size={28} className="mx-auto text-mute mb-3" />
-          <h1 className="display text-2xl">Admin access</h1>
+          <h1 className="display text-3xl leading-9">Admin access</h1>
           <p className="text-dim text-sm mt-2 mb-5">{adminConfigured() ? "Unlock with the admin password to add and manage vault entries." : "Admin isn't set up on this deployment yet."}</p>
           <div className="flex justify-center"><AdminBar isAdmin={false} configured={adminConfigured()} /></div>
         </div>

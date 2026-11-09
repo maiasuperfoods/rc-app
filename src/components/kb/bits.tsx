@@ -24,7 +24,7 @@ export function Crumbs({ items }: { items: { label: string; href?: string }[] })
 export function KbTitle({ title, sub, children }: { title: string; sub?: ReactNode; children?: ReactNode }) {
   return (
     <div className="mb-6">
-      <h1 className="display text-[2rem] md:text-[2.6rem] leading-[1.1]">{title}</h1>
+      <h1 className="display text-4xl leading-10 md:text-5xl md:leading-none">{title}</h1>
       {sub && <p className="text-mute text-sm mt-2">{sub}</p>}
       {children}
     </div>
@@ -34,7 +34,7 @@ export function KbTitle({ title, sub, children }: { title: string; sub?: ReactNo
 export function KbEmpty() {
   return (
     <div className="card p-8 text-center max-w-xl">
-      <div className="display text-xl">The course isn&apos;t connected here yet</div>
+      <div className="title text-xl">The course isn&apos;t connected here yet</div>
       <p className="text-dim text-sm mt-2">
         Sign in with a student account, or set <code className="formula">KB_API_URL</code> and <code className="formula">KB_API_TOKEN</code> for the demo deployment.
       </p>

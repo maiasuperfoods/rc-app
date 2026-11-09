@@ -146,7 +146,7 @@ export function CreativeDashboard(p: Props) {
       {/* ---- top bar ---- */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="display text-3xl leading-tight">Creative Strategy</h1>
+          <h1 className="display text-4xl leading-10 md:text-[2.75rem] md:leading-[3rem]">Creative Strategy</h1>
           <p className="text-dim text-xs mt-1">{p.brandName} · data through {fmtD(dataEnd)} · showing <b className="text-ink">{fmtD(d1)} → {fmtD(d2)}</b>{compare ? <> · compared with {fmtD(prevRange[0])} → {fmtD(prevRange[1])}</> : null} · {p.timezone}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -209,7 +209,7 @@ export function CreativeDashboard(p: Props) {
               <div className="card p-4 flex flex-wrap items-center gap-5">
                 <button className="btn btn-ghost" onClick={() => setTab("OVERVIEW")}>←</button>
                 <span className="h-3 w-3 rounded-sm" style={{ background: colorOf(me.key) }} />
-                <div className="mr-auto"><div className="label">{me.person ? "Strategist" : "Bucket"}</div><div className="display text-xl">{me.name}</div></div>
+                <div className="mr-auto"><div className="label">{me.person ? "Strategist" : "Bucket"}</div><div className="title text-xl">{me.name}</div></div>
                 <div className="border-l border-line pl-5"><div className="label">Rank</div><div className="text-xl font-medium">{me.ranked ? <>#{me.rank} <span className="text-dim text-sm">of {L.ranked.length}</span></> : "—"}</div><div className="text-xs text-mute">{me.ranked ? `Creative Score ${fmtS(me.score)} · team avg ${fmtS(L.avg)}` : !me.person ? "not ranked (no strategist code)" : `needs ${Math.max(0, R.minTested - me.s.tested)} more tested ads to rank`}</div></div>
                 {me.s.tested > 0 && <div className="border-l border-line pl-5"><div className="label">Confidence</div><div className="text-xl"><Pill tone={me.conf[0] === "hi" ? "good" : me.conf[0] === "md" ? "info" : "mute"}>{me.conf[1]}</Pill></div><div className="text-xs text-mute">{me.s.tested} tested ads in range</div></div>}
               </div>
@@ -290,7 +290,7 @@ export function CreativeDashboard(p: Props) {
         <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setDrawer("none")}>
           <div className="absolute inset-0 bg-black/40" />
           <div className="relative w-full max-w-md bg-elev border-l border-line-strong h-full overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4"><h3 className="display text-xl">{drawer === "settings" ? "Rules and targets" : "Definitions"}</h3><button className="btn btn-ghost" onClick={() => setDrawer("none")}>Close</button></div>
+            <div className="flex items-center justify-between mb-4"><h3 className="title text-xl">{drawer === "settings" ? "Rules and targets" : "Definitions"}</h3><button className="btn btn-ghost" onClick={() => setDrawer("none")}>Close</button></div>
             {drawer === "settings" ? (
               <div className="space-y-3 text-sm">
                 <p className="text-dim text-xs">Used everywhere, including the weekly review. Change with care; it re-classifies every ad.</p>

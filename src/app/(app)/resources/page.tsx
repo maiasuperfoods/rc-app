@@ -38,7 +38,7 @@ export default async function ResourcesHub() {
               <ArrowUpRight size={18} className="text-mute group-hover:text-gold transition-colors" />
             </div>
             <div className="label mb-1">{c.kicker}</div>
-            <h2 className="display text-[1.7rem] leading-tight group-hover:text-gold-soft transition-colors">{c.title}</h2>
+            <h2 className="title text-2xl leading-8 group-hover:text-gold-soft transition-colors">{c.title}</h2>
             <p className="text-dim text-sm mt-2 leading-relaxed flex-1">{c.body}</p>
             <div className="text-xs text-gold mt-5">{c.meta}</div>
           </Link>

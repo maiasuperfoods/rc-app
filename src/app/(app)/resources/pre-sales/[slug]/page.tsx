@@ -41,7 +41,7 @@ export default async function PresaleBrandPage({ params }: { params: Promise<{ s
           <span className="text-[0.68rem] uppercase tracking-[0.14em] text-mute">{b.niche}</span>
           <span className="pill pill-gold">{dd.deepDive?.length ?? 0} techniques</span>
         </div>
-        <h1 className="display text-[2.1rem] md:text-[2.6rem] leading-tight">{b.brand_name}</h1>
+        <h1 className="display text-4xl leading-10 md:text-5xl md:leading-none">{b.brand_name}</h1>
         <p className="text-dim text-lg mt-1">{b.product_name}</p>
         {b.headline && (
           <div className="mt-5 card-elev px-4 py-3">
@@ -107,7 +107,7 @@ export default async function PresaleBrandPage({ params }: { params: Promise<{ s
       </div>
 
       <section className="card p-5 md:p-7">
-        <h2 className="display text-2xl flex items-center gap-2.5 mb-6"><Brain size={20} className="text-gold" /> Deep copywriting breakdown</h2>
+        <h2 className="display text-3xl leading-9 flex items-center gap-2.5 mb-6"><Brain size={20} className="text-gold" /> Deep copywriting breakdown</h2>
 
         {dd.coreBeliefShift && (
           <div className="mb-8">

@@ -76,7 +76,7 @@ export default async function HomePage() {
           <ol className="space-y-3">
             {nextActions.map((a, i) => (
               <li key={i} className="flex gap-3 text-sm">
-                <span className="display text-gold text-lg leading-none">{["I", "II", "III"][i]}</span>
+                <span className="numeral text-gold text-xl leading-none">{["I", "II", "III"][i]}</span>
                 <div>
                   <div className="text-ink">{a.title}</div>
                   <div className="text-mute text-xs mt-0.5">{a.why}</div>

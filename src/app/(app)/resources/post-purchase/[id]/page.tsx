@@ -41,7 +41,7 @@ export default async function PpuBrandPage({ params }: { params: Promise<{ id: s
 
       <header className="card p-6 md:p-7 mb-5">
         <div className="label !text-gold mb-2">Brand dossier</div>
-        <h1 className="display text-[2.1rem] md:text-[2.6rem] leading-tight">{b.brand_name}</h1>
+        <h1 className="display text-4xl leading-10 md:text-5xl md:leading-none">{b.brand_name}</h1>
         <p className="text-dim text-lg mt-0.5">{b.core_product}</p>
         <div className="flex flex-wrap gap-x-5 gap-y-2 mt-4 text-sm text-dim">
           <span className="inline-flex items-center gap-1.5"><Hash size={13} className="text-gold" />{b.niche}</span>
@@ -94,7 +94,7 @@ export default async function PpuBrandPage({ params }: { params: Promise<{ id: s
             <section key={u.step} id={`upsell-${u.step}`} className="card overflow-hidden scroll-mt-6">
               <header className="px-5 md:px-6 py-4 border-b border-line bg-elev flex flex-wrap items-center gap-3">
                 <span className="h-8 w-8 rounded-full border border-gold text-gold flex items-center justify-center text-sm tabular-nums">{u.step}</span>
-                <h2 className="display text-xl flex-1 min-w-0">{u.title}</h2>
+                <h2 className="title text-xl flex-1 min-w-0">{u.title}</h2>
                 <span className="pill pill-gold">{u.type}</span>
               </header>
 

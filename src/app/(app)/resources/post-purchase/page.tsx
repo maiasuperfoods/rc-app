@@ -15,7 +15,7 @@ export default async function PostPurchaseVault() {
         <AdminBar isAdmin={isAdmin} configured={adminConfigured()} />
       </div>
 
-      <h1 className="display text-[2.2rem] md:text-[2.8rem] leading-[1.08]">
+      <h1 className="display text-4xl leading-10 md:text-5xl md:leading-none">
         The <span className="italic text-gold">Post-Purchase</span> Vault
       </h1>
       <p className="text-dim mt-2 max-w-2xl">Study how successful e-commerce brands use post-purchase upsell videos to raise order value and scale more aggressively. Funnels, offers, videos, screenshots, full scripts and the psychological levers behind each one.</p>
@@ -29,7 +29,7 @@ export default async function PostPurchaseVault() {
               <span className="pill pill-gold">{b.niche}</span>
               <span className="pill pill-mute">{b.text_only ? <><FileText size={11} /> Text</> : <><Play size={11} /> Video</>}</span>
             </div>
-            <h2 className="display text-[1.45rem] leading-tight group-hover:text-gold-soft transition-colors">{b.brand_name}</h2>
+            <h2 className="title text-xl leading-7 group-hover:text-gold-soft transition-colors">{b.brand_name}</h2>
             <p className="text-sm text-dim mt-0.5">{b.core_product}</p>
             {b.brand_context?.upsellStrategy && <p className="text-sm text-ink/80 mt-4 leading-snug">{b.brand_context.upsellStrategy}</p>}
             <div className="mt-auto pt-5 flex items-center justify-between">

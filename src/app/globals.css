@@ -1,8 +1,44 @@
 @import "tailwindcss";
 
 /* Renaissance Commerce app theme.
-   Dark, warm neutrals with a restrained gold accent. Serif for page titles only;
-   everything functional stays in the sans. */
+   Dark, warm neutrals with a restrained gold accent.
+   Type: Canela Light Italic (300) for display headlines, Satoshi for body and interface.
+   Card and panel titles stay Satoshi 600; gold text does not mean serif. */
+
+/* Canela (Commercial Type) is the primary headline face. Its webfont files are not in this repo:
+   put Canela-LightItalic.woff2 and Canela-Light.woff2 in public/fonts/canela/ (see the README there).
+   local() picks up a copy installed on the viewer's own machine. */
+@font-face {
+  font-family: "RC Canela";
+  src: local("Canela Light Italic"), local("Canela-LightItalic"), local("CanelaTrial-LightItalic"),
+    url("/fonts/canela/Canela-LightItalic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+}
+/* Upright Light: decorative Roman numerals only. */
+@font-face {
+  font-family: "RC Canela";
+  src: local("Canela Light"), local("Canela-Light"), local("CanelaTrial-Light"),
+    url("/fonts/canela/Canela-Light.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+/* Glyph fallback only. The unicode-range lists just the characters outside Canela's basic set
+   (A-Z a-z 0-9 ! " ' , - . ? and curly quotes), so this face can fill in a "$" or "&" inside a
+   Canela headline but can never set a whole headline. Fraunces Italic, SIL Open Font License. */
+@font-face {
+  font-family: "RC Canela Glyphs";
+  src: url("/fonts/glyph-fallback/Fraunces-Italic-latin.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0023-0026, U+0028-002B, U+002F, U+003A-003E, U+0040, U+005B-0060, U+007B-007E,
+    U+00A1-00FF, U+0131, U+0152-0153, U+2010-2015, U+201A, U+201E, U+2020-2022, U+2026, U+2030,
+    U+2039-203A, U+20AC, U+2122, U+2212, U+2215;
+}
+
 :root {
   --bg: #0b0b0d;
   --bg-elev: #121215;
@@ -80,25 +116,57 @@
   --color-bad-dim: var(--bad-dim);
   --color-info: var(--info);
   --color-info-dim: var(--info-dim);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  --font-display: "RC Canela", "RC Canela Glyphs", Georgia, "Times New Roman", serif;
+  --font-serif: "RC Canela", "RC Canela Glyphs", Georgia, "Times New Roman", serif;
 }
 
 html,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  font-feature-settings: "tnum" 1, "cv11" 1;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
 }
 
+/* Display headlines: page H1s, section H2s, dialog headlines. Whole headline is italic. */
 h1.display,
 .display {
-  font-family: var(--font-playfair), Georgia, serif;
-  font-weight: 500;
+  font-family: "RC Canela", "RC Canela Glyphs", Georgia, "Times New Roman", serif;
+  font-weight: 300;
+  font-style: italic;
+  font-synthesis: none;
+  font-variation-settings: "SOFT" 100, "WONK" 0; /* shapes the fallback glyphs to sit with Canela */
+  letter-spacing: -0.025em;
+  text-shadow: none;
+  color: var(--cream);
+}
+/* Pull quotes: same cut, no negative tracking at reading sizes. */
+.display-quote {
+  font-family: "RC Canela", "RC Canela Glyphs", Georgia, "Times New Roman", serif;
+  font-weight: 300;
+  font-style: italic;
+  font-synthesis: none;
+}
+/* Card, panel and empty-state titles: upright Satoshi semibold. */
+.title {
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-style: normal;
   letter-spacing: -0.01em;
   color: var(--cream);
+}
+/* Decorative Roman numerals: light upright Canela. */
+.numeral {
+  font-family: "RC Canela", "RC Canela Glyphs", Georgia, "Times New Roman", serif;
+  font-weight: 300;
+  font-style: normal;
+  font-synthesis: none;
+}
+/* The typed logo lockup keeps its original face; it is not part of the type system. */
+.wordmark {
+  font-family: var(--font-playfair), Georgia, serif;
 }
 
 .hairline {
@@ -186,11 +254,12 @@ select.input {
 }
 
 .label {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-mute);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .table {
@@ -300,7 +369,8 @@ select.input {
 .kb-prose img { max-width: 100%; height: auto; border-radius: 6px; }
 .kb-prose .ProseMirror-selectednode { outline: 2px solid var(--gold); }
 .kb-prose em { color: var(--text); }
-.kb-prose h1, .kb-prose h2 { font-family: var(--font-playfair), Georgia, serif; color: var(--cream); font-weight: 500; font-size: 1.55rem; line-height: 1.25; margin: 2.2rem 0 0.9rem; letter-spacing: -0.01em; }
+.kb-prose h1, .kb-prose h2 { font-family: "RC Canela", "RC Canela Glyphs", Georgia, serif; font-variation-settings: "SOFT" 100, "WONK" 0; color: var(--cream); font-weight: 300; font-style: italic; font-synthesis: none; font-size: 1.875rem; line-height: 2.25rem; margin: 2.2rem 0 0.9rem; letter-spacing: -0.025em; }
+.kb-prose h1 em, .kb-prose h2 em, .kb-prose h1 strong, .kb-prose h2 strong { font-style: inherit; font-weight: inherit; }
 .kb-prose h3 { color: var(--text); font-size: 1.1rem; font-weight: 600; margin: 1.6rem 0 0.6rem; }
 .kb-prose h4 { color: var(--text); font-size: 1rem; font-weight: 600; margin: 1.3rem 0 0.5rem; }
 .kb-prose h1 strong, .kb-prose h2 strong, .kb-prose h3 strong { font-weight: inherit; color: inherit; }
