@@ -3,8 +3,10 @@
 Canela (Commercial Type) is the primary headline face of the Renaissance Commerce font system.
 Its font files are deliberately not committed to this repo. The CSS in `src/app/globals.css` loads:
 
-- `Canela-LightItalic.woff2` — display headlines (weight 300, italic)
-- `Canela-Light.woff2` — decorative Roman numerals only (weight 300, upright)
+- `Canela-LightItalic.woff2` or `Canela-LightItalic.otf` — display headlines (weight 300, italic)
+- `Canela-Light.woff2` or `Canela-Light.otf` — decorative Roman numerals only (weight 300, upright)
+
+Either format works; the original OpenType file can be used as it is, with no conversion.
 
 from this folder. Until both files are here, headline letters fall back to Georgia italic for anyone
 who does not have Canela installed on their own machine.

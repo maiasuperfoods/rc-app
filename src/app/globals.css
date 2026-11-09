@@ -11,7 +11,8 @@
 @font-face {
   font-family: "RC Canela";
   src: local("Canela Light Italic"), local("Canela-LightItalic"),
-    url("/fonts/canela/Canela-LightItalic.woff2") format("woff2");
+    url("/fonts/canela/Canela-LightItalic.woff2") format("woff2"),
+    url("/fonts/canela/Canela-LightItalic.otf") format("opentype");
   font-style: italic;
   font-weight: 300;
   font-display: swap;
@@ -20,7 +21,8 @@
 @font-face {
   font-family: "RC Canela";
   src: local("Canela Light"), local("Canela-Light"),
-    url("/fonts/canela/Canela-Light.woff2") format("woff2");
+    url("/fonts/canela/Canela-Light.woff2") format("woff2"),
+    url("/fonts/canela/Canela-Light.otf") format("opentype");
   font-style: normal;
   font-weight: 300;
   font-display: swap;
