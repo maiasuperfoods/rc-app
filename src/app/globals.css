@@ -7,10 +7,10 @@
 
 /* Canela (Commercial Type) is the primary headline face. Its webfont files are not in this repo:
    put Canela-LightItalic.woff2 and Canela-Light.woff2 in public/fonts/canela/ (see the README there).
-   local() picks up a copy installed on the viewer's own machine. */
+   local() picks up a licensed copy installed on the viewer's own machine. */
 @font-face {
   font-family: "RC Canela";
-  src: local("Canela Light Italic"), local("Canela-LightItalic"), local("CanelaTrial-LightItalic"),
+  src: local("Canela Light Italic"), local("Canela-LightItalic"),
     url("/fonts/canela/Canela-LightItalic.woff2") format("woff2");
   font-style: italic;
   font-weight: 300;
@@ -19,7 +19,7 @@
 /* Upright Light: decorative Roman numerals only. */
 @font-face {
   font-family: "RC Canela";
-  src: local("Canela Light"), local("Canela-Light"), local("CanelaTrial-Light"),
+  src: local("Canela Light"), local("Canela-Light"),
     url("/fonts/canela/Canela-Light.woff2") format("woff2");
   font-style: normal;
   font-weight: 300;
