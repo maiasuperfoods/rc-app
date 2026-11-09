@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { after } from "next/server";
+import { runProvisioning } from "@/lib/jobs/provision";
 import { requireCoach } from "@/lib/data";
 import { buildSnapshot } from "@/lib/snapshot";
 import { pcConfigured } from "@/lib/pc/client";
@@ -14,6 +16,7 @@ const STAGE = { grind: "Grind", validation: "Validation", acceleration: "Acceler
 export default async function AdminPage() {
   const ctx = await requireCoach();
   const coaching = pcConfigured();
+  if (coaching) after(() => runProvisioning().catch(() => {}));
   const [snaps, students] = await Promise.all([Promise.all(ctx.tenants.map((t) => buildSnapshot(ctx.db, t))), coaching ? roster().catch(() => [] as RosterRow[]) : Promise.resolve([] as RosterRow[])]);
   const byStudent = new Map(snaps.filter((s) => s.tenant.pcStudentId).map((s) => [s.tenant.pcStudentId!, s]));
   const unlinkedBrands = snaps.filter((s) => !s.tenant.pcStudentId);
