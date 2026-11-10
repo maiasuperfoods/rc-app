@@ -8,6 +8,14 @@ import { KNOWN_METRICS, num, type PcCall, type PcStudent } from "./types";
 const FOUNDER_DOMAINS = () => (process.env.FOUNDER_DOMAINS || "renaissancecommerce.com").split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
 export const isFounderEmail = (e: string | null | undefined) => FOUNDER_DOMAINS().some((d) => String(e ?? "").toLowerCase().endsWith("@" + d));
 
+/**
+ * Domains belonging to the ecommerce side of the business. Nothing touching one of these may ever
+ * reach the coaching database: its meetings are holdco standups and customer-support recordings,
+ * which have no place in a student's record. Set EXCLUDED_DOMAINS to add the other brand domains.
+ */
+const EXCLUDED_DOMAINS = () => (process.env.EXCLUDED_DOMAINS || "trymaia.co").split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+export const isExcludedEmail = (e: string | null | undefined) => EXCLUDED_DOMAINS().some((d) => String(e ?? "").toLowerCase().endsWith("@" + d));
+
 // ---------- students ----------
 export async function updateStudent(id: string, patch: Partial<Pick<PcStudent, "status" | "lead_founder" | "booking_url" | "notes">>) {
   const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
@@ -230,15 +238,17 @@ export async function importFireflies(meetingId: string, forStudentId?: string, 
  *
  *  1. Fireflies is only ever asked for meetings a coaching address was in — the filter goes to the
  *     API, not applied to the results (see coachingEmails for why that ordering matters).
- *  2. It lines up with a Private Circle call booked through Cal.com — an existing pc_calls row
- *     with a student and a scheduled time, still waiting for its transcript.
+ *  2. It lines up with a Cal.com booking that the student themselves was invited to: a pc_calls row
+ *     with their address on the invite, still waiting for its transcript.
+ *  3. No address from the ecommerce side of the business (EXCLUDED_DOMAINS) appears on either.
  *
- * Neither alone is safe. The same Fireflies workspace also carries the holdco's internal standups
- * and its customer-support calls — the latter full of customer names, billing disputes and the
- * occasional medical detail. Some sit in the same hour as a coaching call, and a holdco team
- * member's personal address appears on the student roster, so matching on student email alone
- * pulls in internal meetings while *missing* real coaching calls (which are often recorded with
- * only the coach in the attendee list). Requiring a coaching host and a booking excludes both.
+ * None of these alone is safe. The same Fireflies workspace also carries the holdco's internal
+ * standups and its customer-support calls — the latter full of customer names, billing disputes and
+ * the occasional medical detail; one afternoon window returned fifty of them. Some sit in the same
+ * hour as a coaching call, and a holdco team member's personal address appears on the student
+ * roster, so matching on student email against Fireflies alone pulls in internal meetings while
+ * *missing* real coaching calls, which are often recorded with only the coach in the attendee list.
+ * The booking is the anchor; Fireflies only ever supplies the transcript for one.
  *
  * Anything that doesn't match is left in Fireflies untouched; a coach imports it by id if needed.
  *
@@ -252,11 +262,25 @@ export async function syncFireflies(opts: { days?: number; studentId?: string } 
   const days = opts.days ?? 60;
   const since = new Date(Date.now() - days * 86400e3).toISOString();
 
-  // Bookings still waiting for their transcript. These are what a Fireflies meeting has to match.
-  let q = sb.from("pc_calls").select("id,student_id,scheduled_at,ended_at").not("student_id", "is", null).is("transcript", null).neq("status", "cancelled").gte("scheduled_at", since).lte("scheduled_at", new Date().toISOString());
+  // Cal.com bookings still waiting for their transcript. These are what a Fireflies meeting has to
+  // match, and a booking only counts if the student themselves was invited to it.
+  let q = sb.from("pc_calls").select("id,student_id,scheduled_at,ended_at,attendee_emails").eq("source", "cal.com").not("student_id", "is", null).is("transcript", null).neq("status", "cancelled").gte("scheduled_at", since).lte("scheduled_at", new Date().toISOString());
   if (opts.studentId) q = q.eq("student_id", opts.studentId);
-  const { data: bookings, error } = await q;
+  const { data: rawBookings, error } = await q;
   if (error) throw new Error(error.message);
+
+  // The student's own addresses, to check each booking against.
+  const ids = [...new Set((rawBookings ?? []).map((b) => b.student_id as string))];
+  const { data: roster } = ids.length ? await sb.from("pc_students").select("id,email,alt_emails").in("id", ids) : { data: [] };
+  const addressesFor = new Map((roster ?? []).map((s) => [s.id as string, new Set([s.email as string, ...(((s.alt_emails as string[] | null) ?? []))].filter(Boolean).map((e) => e.toLowerCase()))]));
+
+  const bookings = (rawBookings ?? []).filter((b) => {
+    const invited = ((b.attendee_emails as string[] | null) ?? []).map((e) => e.toLowerCase());
+    // No holdco address anywhere near it, and the student must be on the invite.
+    if (invited.some(isExcludedEmail)) return false;
+    const mine = addressesFor.get(b.student_id as string);
+    return !!mine && invited.some((e) => mine.has(e));
+  });
 
   // Already stored, so a re-run is cheap and never imports the same meeting twice.
   const { data: seen } = await sb.from("pc_calls").select("external_id").eq("source", "fireflies").not("external_id", "is", null);
@@ -273,7 +297,7 @@ export async function syncFireflies(opts: { days?: number; studentId?: string } 
   }
 
   let found = 0, imported = 0, skipped = 0, failed = 0;
-  for (const b of bookings ?? []) {
+  for (const b of bookings) {
     const slot = +new Date((b.scheduled_at as string) ?? (b.ended_at as string));
     if (!slot) continue;
     // A call starts at its slot and runs over; allow a late start and a long session.
@@ -291,9 +315,13 @@ export async function syncFireflies(opts: { days?: number; studentId?: string } 
         continue;
       }
       const fresh = (list ?? []).filter((t) => !known.has(t.id));
-      // Condition 2: a coaching address ran or attended it. Everything else in this workspace —
-      // holdco standups, support calls — fails here even when it falls in the same hour.
-      const ours = fresh.filter((t) => [t.host_email, t.organizer_email, ...(t.participants ?? [])].some((e) => isFounderEmail(e)));
+      // Last gate before anything is stored: a coaching address ran or attended it, and no address
+      // from the ecommerce side appears anywhere on it. Holdco standups and support recordings fail
+      // here even when one falls in the same hour as a booked call.
+      const ours = fresh.filter((t) => {
+        const people = [t.host_email, t.organizer_email, ...(t.participants ?? [])];
+        return people.some(isFounderEmail) && !people.some(isExcludedEmail);
+      });
       skipped += fresh.length - ours.length;
       if (!ours.length) continue;
       // Closest start to the booked slot wins, so two coaching calls in one window don't cross over.
@@ -310,8 +338,8 @@ export async function syncFireflies(opts: { days?: number; studentId?: string } 
       }
     }
   }
-  if (imported || failed) await pcLog("call.fireflies.synced", { accounts: keys.length, bookings: (bookings ?? []).length, found, imported, skipped, failed, days, by: "rc-app" });
-  return { configured: true, bookings: (bookings ?? []).length, found, imported, skipped, failed };
+  if (imported || failed) await pcLog("call.fireflies.synced", { accounts: keys.length, bookings: bookings.length, found, imported, skipped, failed, days, by: "rc-app" });
+  return { configured: true, bookings: bookings.length, found, imported, skipped, failed };
 }
 
 async function findStudentByEmails(emails: string[]) {
