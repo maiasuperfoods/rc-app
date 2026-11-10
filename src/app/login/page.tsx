@@ -6,8 +6,12 @@ import { setDemoRole } from "@/app/actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+/** Only ever a path on this site — never an absolute or protocol-relative URL someone passed in. */
+const safeNext = (n: string | undefined) => (n && n.startsWith("/") && !n.startsWith("//") ? n : null);
+
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const sp = await searchParams;
+  const next = safeNext(sp.next);
   const demo = isDemoMode();
   if (demo && !sp.error) {
     // In demo mode there is nothing to sign into; offer the two demo roles.
@@ -24,14 +28,14 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     const { supabaseServer } = await import("@/lib/supabase/server");
     const sb = await supabaseServer();
     const { data } = await sb.auth.getUser();
-    if (data.user) redirect("/");
+    if (data.user) redirect(next ?? "/");
   }
   return (
     <AuthFrame>
       <h1 className="display text-3xl leading-9 mb-2">Sign in</h1>
       <p className="text-sm text-dim mb-6">Students use the email their coach invited. Coaches use their Renaissance OS admin login.</p>
       {sp.error && <div className="rounded-md bg-bad-dim text-bad text-sm px-3 py-2 mb-4">{sp.error}</div>}
-      <LoginForm />
+      <LoginForm next={next} />
     </AuthFrame>
   );
 }

@@ -34,6 +34,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
 
   const admin = supabaseAdmin();
   const redirectUri = `${origin}/api/integrations/${provider}/callback`;
+  let reconnected = false;
 
   try {
     if (provider === "shopify") {
@@ -43,6 +44,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
       if (!shop) return fail("That store address isn't valid.");
       if (parsed.shop && parsed.shop !== shop) return fail("The store changed during sign-in. Please start again.");
       const token = await shopifyExchangeCode(shop, code);
+      // Has this store been connected before? Decides reinstall vs first install, below.
+      const known = tenantId ? null : await tenantForShop(admin, shop);
 
       if (tenantId) {
         // Started inside the app by a signed-in student: check they still have the brand, then save.
@@ -50,6 +53,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
         if (!ctx.tenants.some((t) => t.id === tenantId)) return fail("You don't have access to that brand.");
         await saveCredentials(admin, tenantId, "shopify", { accessToken: token, externalId: shop });
         await admin.from("shopify_pending_installs").delete().eq("shop", shop);
+      } else if (known) {
+        // Reinstall. This store has been connected before, so the brand is already known: put the
+        // new token straight back on it. Parking it for a manual re-link instead is the classic
+        // reinstall failure — a returning merchant finds themselves at a sign-in wall holding a
+        // connection they already made.
+        await saveCredentials(admin, known, "shopify", { accessToken: token, externalId: shop });
+        await admin.from("shopify_pending_installs").delete().eq("shop", shop);
+        reconnected = true;
       } else {
         // Started on Shopify's side: there is no brand to attach it to yet, so park the token
         // and let the next sign-in link it (see /shopify/connected and the Connections page).
@@ -78,6 +89,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
   }
 
   c.delete("rc_oauth_state");
-  const dest = source === "shopify" ? "/shopify/connected" : ret || "/integrations";
+  // A reinstall is already attached to its brand, so there is nothing left to do — go to the
+  // dashboard. A first install from Shopify's side still needs an account before it can be linked.
+  const dest = reconnected ? "/?reconnected=shopify" : source === "shopify" ? "/shopify/connected" : ret || "/integrations";
   return NextResponse.redirect(new URL(dest, origin));
+}
+
+/** The brand a store is already connected to, if any. */
+async function tenantForShop(db: ReturnType<typeof supabaseAdmin>, shop: string): Promise<string | null> {
+  const { data } = await db.from("integrations").select("tenant_id").eq("provider", "shopify").eq("external_id", shop).maybeSingle();
+  return (data?.tenant_id as string) ?? null;
 }

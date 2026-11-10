@@ -3,10 +3,11 @@
 import { useActionState } from "react";
 import { signInWithPassword } from "./actions";
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string | null }) {
   const [state, action, pending] = useActionState(signInWithPassword, {});
   return (
     <form action={action} className="space-y-3">
+      {next && <input type="hidden" name="next" value={next} />}
       <label className="block">
         <span className="label block mb-1.5">Email</span>
         <input className="input" type="email" name="email" required autoComplete="email" placeholder="you@yourbrand.com" />

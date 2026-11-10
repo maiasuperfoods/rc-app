@@ -19,10 +19,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prov
   if (provider === "shopify") {
     const shop = url.searchParams.get("shop");
     if (!shop) {
-      // Ask for the store domain with a tiny form rather than a raw error.
+      // Ask for the store domain with a tiny form rather than a raw error. Self-contained on
+      // purpose: it is served from a route handler, so it gets no layout, styles or theme.
       return new NextResponse(
-        `<!doctype html><html><body style="font-family:system-ui;background:#0b0b0d;color:#ece8df;display:grid;place-items:center;height:100vh;margin:0"><form style="width:320px"><h2 style="font-weight:500">Which Shopify store?</h2><p style="color:#a19b8f;font-size:14px">Your store's .myshopify.com address.</p><input name="shop" placeholder="your-store.myshopify.com" required style="width:100%;padding:10px;border-radius:8px;border:1px solid #34343b;background:#0b0b0d;color:#ece8df"/><button style="margin-top:12px;width:100%;padding:10px;border-radius:8px;background:#c9a961;border:0;font-weight:500">Continue to Shopify</button></form></body></html>`,
-        { headers: { "content-type": "text/html" } },
+        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connect your Shopify store</title></head><body style="font-family:system-ui,-apple-system,sans-serif;background:#0b0b0d;color:#ece8df;display:grid;place-items:center;min-height:100vh;margin:0;padding:0 20px"><form style="width:100%;max-width:320px"><h1 style="font-weight:500;font-size:20px;margin:0 0 6px">Which Shopify store?</h1><p style="color:#a19b8f;font-size:14px;line-height:1.5;margin:0 0 16px">Enter your store&rsquo;s .myshopify.com address and we&rsquo;ll take you to Shopify to approve the connection.</p><input name="shop" placeholder="your-store.myshopify.com" required autofocus autocapitalize="off" autocorrect="off" spellcheck="false" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #34343b;background:#0b0b0d;color:#ece8df;font-size:16px"><button style="margin-top:12px;width:100%;padding:11px;border-radius:8px;background:#c9a961;color:#0b0b0d;border:0;font-weight:500;font-size:15px;cursor:pointer">Continue to Shopify</button></form></body></html>`,
+        { headers: { "content-type": "text/html; charset=utf-8" } },
       );
     }
     const clean = shopifyCleanShop(shop);

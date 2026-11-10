@@ -16,10 +16,13 @@ export async function signInWithPassword(_: unknown, form: FormData): Promise<{ 
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const password = String(form.get("password") ?? "");
   if (!email || !password) return { error: "Enter your email and password." };
+  // Only ever a path on this site, so a crafted ?next= can't bounce anyone off to another host.
+  const raw = String(form.get("next") ?? "");
+  const next = raw.startsWith("/") && !raw.startsWith("//") ? raw : null;
   const sb = await supabaseServer();
 
   const student = await sb.auth.signInWithPassword({ email, password });
-  if (!student.error) redirect("/");
+  if (!student.error) redirect(next ?? "/");
 
   let coach: { token_hash: string; type: string; must_change: boolean } | null = null;
   let coachError: string | null = null;
