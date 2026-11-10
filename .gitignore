@@ -32,6 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the template, which carries no secrets and is the only record of which variables the
+# app needs. Without this it was ignored along with the rest, so it never reached the repo.
+!.env.example
 
 # vercel
 .vercel
