@@ -141,14 +141,56 @@ export async function reassignCall(callId: string, newStudentId: string, extraAl
   if (c.transcript) await processCall(newStudentId, callId);
 }
 
-export async function importFireflies(meetingId: string) {
-  const key = process.env.FIREFLIES_API_KEY;
-  if (!key) throw new Error("FIREFLIES_API_KEY is not configured.");
+/**
+ * Coaching calls are recorded under more than one Fireflies account (each coach has their own, and
+ * a meeting only exists in the workspace of whoever's notetaker joined it). So the key is a list:
+ * FIREFLIES_API_KEY accepts several, comma-separated, and every lookup runs across all of them.
+ */
+export const firefliesKeys = () =>
+  [...new Set(`${process.env.FIREFLIES_API_KEY ?? ""},${process.env.FIREFLIES_API_KEYS ?? ""}`.split(",").map((k) => k.trim()).filter(Boolean))];
+
+async function fireflies<T>(query: string, variables: Record<string, unknown>, key: string): Promise<T> {
+  const r = await fetch("https://api.fireflies.ai/graphql", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ query, variables }), signal: AbortSignal.timeout(30000) });
+  const j = (await r.json()) as { data?: T; errors?: { message?: string }[] };
+  if (!j.data || j.errors?.length) throw new Error(`Fireflies: ${j.errors?.map((e) => e.message).join("; ") || JSON.stringify(j)}`);
+  return j.data;
+}
+
+/**
+ * Which Fireflies workspace each configured key actually opens. Shown on the Calls page so a key
+ * for the wrong workspace is visible at a glance instead of quietly pulling the wrong meetings.
+ */
+export async function firefliesAccounts() {
+  const q = `query { users { email name } }`;
+  return Promise.all(firefliesKeys().map(async (key, i) => {
+    const label = `key ${i + 1} (…${key.slice(-4)})`;
+    try {
+      const { users } = await fireflies<{ users: { email: string | null; name: string | null }[] }>(q, {}, key);
+      return { label, ok: true as const, emails: (users ?? []).map((u) => (u.email ?? "").toLowerCase()).filter(Boolean) };
+    } catch (e) {
+      return { label, ok: false as const, error: (e as Error).message, emails: [] as string[] };
+    }
+  }));
+}
+
+type FfTranscript = { id: string; title: string | null; date: number | null; duration: number | null; audio_url: string | null; video_url: string | null; participants: string[] | null; summary: { overview?: string } | null; sentences: { speaker_name: string; text: string }[] | null };
+
+/**
+ * Pull one Fireflies meeting in by its id. `forStudentId` pins the call to a student instead of
+ * inferring one from the attendee list; the automatic sync always passes it, because it only ever
+ * asks Fireflies for meetings that student attended.
+ */
+export async function importFireflies(meetingId: string, forStudentId?: string, key?: string) {
   const q = `query T($id: String!) { transcript(id: $id) { id title date duration audio_url video_url participants summary { overview } sentences { speaker_name text } } }`;
-  const r = await fetch("https://api.fireflies.ai/graphql", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ query: q, variables: { id: meetingId } }), signal: AbortSignal.timeout(30000) });
-  const j = (await r.json()) as { data?: { transcript?: Record<string, unknown> }; errors?: unknown };
-  const t = j.data?.transcript as { id: string; title: string | null; date: number | null; duration: number | null; audio_url: string | null; video_url: string | null; participants: string[] | null; summary: { overview?: string } | null; sentences: { speaker_name: string; text: string }[] | null } | undefined;
-  if (!t) throw new Error(`Fireflies: ${JSON.stringify(j.errors ?? j)}`);
+  const keys = key ? [key] : firefliesKeys();
+  if (!keys.length) throw new Error("No Fireflies account is connected yet.");
+  // A meeting lives in one workspace only, so try each key until one has it.
+  let t: FfTranscript | undefined, last: Error | null = null;
+  for (const k of keys) {
+    try { ({ transcript: t } = await fireflies<{ transcript?: FfTranscript }>(q, { id: meetingId }, k)); } catch (e) { last = e as Error; continue; }
+    if (t) break;
+  }
+  if (!t) throw new Error(last ? `Fireflies: ${last.message}` : "No connected Fireflies account has a meeting with that id.");
   const call = {
     source: "fireflies", external_id: t.id, title: t.title, attendee_emails: t.participants ?? [],
     recording_url: t.video_url || t.audio_url || `https://app.fireflies.ai/view/${t.id}`,
@@ -157,9 +199,70 @@ export async function importFireflies(meetingId: string) {
     started_at: t.date ? new Date(t.date) : null,
     ended_at: t.date ? new Date(t.date + (t.duration ?? 0) * 60000) : null,
   };
-  const res = await ingestCall(call);
+  const res = await ingestCall(call, forStudentId);
   await pcLog("call.fireflies.imported", { meetingId, ...res, by: "rc-app" });
   return res;
+}
+
+/**
+ * Bring in every new coaching call from Fireflies, without a coach pasting meeting ids.
+ *
+ * This asks Fireflies **per student** — `participants: [their email, ...their alt emails]` — rather
+ * than for recent meetings in general. That distinction is the safeguard, not an optimisation: the
+ * same Fireflies workspace also records customer-support calls carrying customer names, billing
+ * disputes and occasionally personal health details. A roster-scoped query cannot return one, so
+ * those transcripts can never reach this database. Do not widen this to an unfiltered
+ * `transcripts(limit:)` query.
+ *
+ * Each new meeting then takes the normal path — ingest → processCall — so the commitments made on
+ * the call land as action items on that student's Coaching page.
+ */
+export async function syncFireflies(opts: { days?: number; studentId?: string } = {}) {
+  const keys = firefliesKeys();
+  if (!keys.length) return { configured: false, students: 0, found: 0, imported: 0, failed: 0 };
+  const sb = pc();
+  const days = opts.days ?? 30;
+  const from = new Date(Date.now() - days * 86400e3).toISOString();
+  let q = sb.from("pc_students").select("id,email,alt_emails,status").neq("status", "archived");
+  if (opts.studentId) q = q.eq("id", opts.studentId);
+  const { data: students, error } = await q;
+  if (error) throw new Error(error.message);
+
+  // Meetings already stored, so a re-run is cheap and never imports the same call twice.
+  const { data: seen } = await sb.from("pc_calls").select("external_id").eq("source", "fireflies").not("external_id", "is", null);
+  const known = new Set((seen ?? []).map((r) => r.external_id as string));
+
+  const LIST = `query L($emails: [String], $from: DateTime, $limit: Int) { transcripts(participants: $emails, fromDate: $from, limit: $limit) { id } }`;
+  let found = 0, imported = 0, failed = 0;
+  for (const s of students ?? []) {
+    const emails = [...new Set([s.email as string, ...(((s.alt_emails as string[] | null) ?? []))].filter(Boolean).map((e) => e.toLowerCase()))];
+    if (!emails.length) continue;
+    // A coaching call sits in whichever coach's workspace recorded it, so ask every connected account.
+    for (const key of keys) {
+      let list: { id: string }[] = [];
+      try {
+        ({ transcripts: list } = await fireflies<{ transcripts: { id: string }[] }>(LIST, { emails, from, limit: 50 }, key));
+      } catch (e) {
+        failed++;
+        await pcLog("call.fireflies.sync.failed", { account: `…${key.slice(-4)}`, error: (e as Error).message, by: "rc-app" }, s.id as string);
+        continue;
+      }
+      for (const t of list ?? []) {
+        if (known.has(t.id)) continue;
+        found++;
+        try {
+          await importFireflies(t.id, s.id as string, key);
+          known.add(t.id);
+          imported++;
+        } catch (e) {
+          failed++;
+          await pcLog("call.fireflies.sync.failed", { meetingId: t.id, error: (e as Error).message, by: "rc-app" }, s.id as string);
+        }
+      }
+    }
+  }
+  if (imported || failed) await pcLog("call.fireflies.synced", { accounts: keys.length, students: (students ?? []).length, found, imported, failed, days, by: "rc-app" });
+  return { configured: true, students: (students ?? []).length, found, imported, failed };
 }
 
 async function findStudentByEmails(emails: string[]) {
@@ -171,9 +274,16 @@ async function findStudentByEmails(emails: string[]) {
   return (alt?.[0] as PcStudent) ?? null;
 }
 
-async function ingestCall(call: { source: string; external_id: string; title: string | null; attendee_emails: string[]; recording_url: string | null; transcript: string; summary: string | null; started_at: Date | null; ended_at: Date | null }) {
+async function ingestCall(call: { source: string; external_id: string; title: string | null; attendee_emails: string[]; recording_url: string | null; transcript: string; summary: string | null; started_at: Date | null; ended_at: Date | null }, forStudentId?: string) {
   const sb = pc();
-  let student = await findStudentByEmails(call.attendee_emails);
+  // A pinned student wins over attendee matching: the sync already knows whose call this is, and
+  // phone/room-joined meetings often arrive with an empty attendee list.
+  let student: PcStudent | null = null;
+  if (forStudentId) {
+    const { data } = await sb.from("pc_students").select("*").eq("id", forStudentId).single();
+    student = (data as PcStudent) ?? null;
+  }
+  if (!student) student = await findStudentByEmails(call.attendee_emails);
   let existing: { id: string } | null = null;
   if (!student) {
     const end = call.ended_at ?? new Date();

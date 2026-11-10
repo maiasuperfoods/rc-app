@@ -74,6 +74,11 @@ export async function importFireflies(meetingId: string) {
   return run(() => M.importFireflies(meetingId));
 }
 
+/** Pull in any new coaching calls from Fireflies now, rather than waiting for the nightly job. */
+export async function syncCalls(studentId?: string) {
+  return run(() => M.syncFireflies(studentId ? { studentId } : {}));
+}
+
 /** Create the student's brand + platform account now (normally the hourly job does this once paid + intake complete). */
 export async function provisionNow(studentId: string) {
   return run(() => provisionStudent(studentId, { force: true }));

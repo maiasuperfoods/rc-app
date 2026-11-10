@@ -158,6 +158,30 @@ export function FirefliesImport() {
   );
 }
 
+export function SyncCalls({ studentId }: { studentId?: string } = {}) {
+  const { pending, error, act } = useAct();
+  const [msg, setMsg] = useState<string | null>(null);
+  return (
+    <div>
+      <button
+        type="button"
+        className="btn btn-ghost"
+        disabled={pending}
+        onClick={() => act(() => A.syncCalls(studentId), (r) => {
+          const d = (r as { data?: { configured: boolean; students: number; imported: number; failed: number } }).data;
+          if (!d?.configured) setMsg("Fireflies isn't connected yet.");
+          else if (d.imported) setMsg(`${d.imported} new call${d.imported > 1 ? "s" : ""} imported. Action items are on the student's Coaching page.`);
+          else setMsg(`Up to date — nothing new across ${d.students} student${d.students === 1 ? "" : "s"}.${d.failed ? ` ${d.failed} lookup${d.failed > 1 ? "s" : ""} failed; see the integration log.` : ""}`);
+        })}
+      >
+        <RefreshCw size={14} className={pending ? "animate-spin" : ""} /> {pending ? "Checking Fireflies…" : "Check for new calls"}
+      </button>
+      {msg && <p className="text-xs text-dim mt-2">{msg}</p>}
+      <Err error={error} />
+    </div>
+  );
+}
+
 // ---------- Action items tab ----------
 export function ActionItemRow({ item }: { item: PcActionItem }) {
   const { pending, error, act } = useAct();

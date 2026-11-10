@@ -1,17 +1,24 @@
 import Link from "next/link";
+import { after } from "next/server";
 import { requireCoach } from "@/lib/data";
 import { pcConfigured } from "@/lib/pc/client";
 import { allCalls } from "@/lib/pc/queries";
+import { firefliesAccounts, syncFireflies } from "@/lib/pc/mutations";
 import { Card, PageHeader, Pill } from "@/components/ui";
 import { fmtDT } from "@/components/coaching/format";
-import { AddCallForm, AssignCall, FirefliesImport } from "@/components/coaching/desk-client";
+import { AddCallForm, AssignCall, FirefliesImport, SyncCalls } from "@/components/coaching/desk-client";
+
+export const dynamic = "force-dynamic";
 
 export default async function CallsPage() {
   await requireCoach();
   if (!pcConfigured()) {
     return <><PageHeader title="Calls" /><Card><p className="text-sm text-dim p-4">Coaching data is not connected yet.</p></Card></>;
   }
-  const { calls, students, events, unassigned } = await allCalls();
+  const [{ calls, students, events, unassigned }, accounts] = await Promise.all([allCalls(), firefliesAccounts()]);
+  // Opening this page is the moment a coach cares about new transcripts, so pull them after the
+  // response goes out. The nightly job catches anything nobody looks at.
+  after(() => syncFireflies().catch(() => {}));
   return (
     <>
       <PageHeader title="Calls" subtitle={`Everything received from Cal.com and the call recorder. ${unassigned ? `${unassigned} unassigned call${unassigned > 1 ? "s" : ""} need a student picked once; that email is remembered.` : "Unassigned calls need a student picked once; that email is remembered."}`} />
@@ -39,7 +46,27 @@ export default async function CallsPage() {
         </tbody></table></div>
       </Card>
       <div className="grid lg:grid-cols-2 gap-4">
-        <Card title="Import from Fireflies" hint="Paste a Fireflies meeting ID (from the meeting's URL on app.fireflies.ai) to pull its transcript in now."><FirefliesImport /></Card>
+        <Card title="Fireflies" hint="New coaching calls are pulled in automatically — only meetings a student attended, matched on their email. No other meeting in these workspaces is ever fetched.">
+          <div className="mb-4">
+            <div className="label mb-2">Connected accounts</div>
+            {accounts.length ? (
+              <ul className="space-y-1.5 text-xs">
+                {accounts.map((a) => (
+                  <li key={a.label} className="flex items-start gap-2">
+                    <Pill tone={a.ok ? "good" : "bad"}>{a.ok ? "connected" : "failing"}</Pill>
+                    <span className="text-dim min-w-0">{a.ok ? (a.emails.length ? a.emails.join(", ") : "workspace reachable, no members listed") : a.error}<span className="text-mute"> · {a.label}</span></span>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="text-xs text-mute">No Fireflies account connected. Set FIREFLIES_API_KEY to the coaching accounts&apos; API keys, comma-separated.</p>}
+          </div>
+          <SyncCalls />
+          <div className="border-t border-line mt-4 pt-4">
+            <div className="label mb-2">Import one by ID</div>
+            <p className="text-xs text-mute mb-2">For a call the automatic sync missed — e.g. the student joined from an address we don&apos;t have on file. Paste the meeting ID from its app.fireflies.ai URL.</p>
+            <FirefliesImport />
+          </div>
+        </Card>
         <Card title="Add a call manually" hint="Paste a transcript. A summary and action items are extracted automatically."><AddCallForm students={students} /></Card>
       </div>
     </>

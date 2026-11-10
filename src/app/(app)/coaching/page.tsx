@@ -36,7 +36,12 @@ export default async function CoachingPage() {
   const joined = s.paid_at || s.agreement_signed_at; const weeks = joined ? Math.max(0, Math.floor((now - +new Date(joined)) / (7 * 86400e3))) : null;
   const completed = calls.filter((c) => c.status === "completed");
   const nextCall = calls.filter((c) => c.status === "scheduled" && c.scheduled_at && +new Date(c.scheduled_at) > now).sort((x, y) => +new Date(x.scheduled_at!) - +new Date(y.scheduled_at!))[0];
-  const mine = actions.filter((x) => x.owner === "student");
+  const mine = actions.filter((x) => x.owner === "student" && x.status !== "dropped");
+  const openMine = mine.filter((x) => x.status === "open");
+  // Overdue first, then soonest due, then undated; anything closed drops to the bottom.
+  const due = (x: { due_on: string | null }) => (x.due_on ? +new Date(x.due_on) : Number.MAX_SAFE_INTEGER);
+  const sortedMine = [...mine].sort((a, b) => (a.status === "open" ? 0 : 1) - (b.status === "open" ? 0 : 1) || due(a) - due(b) || +new Date(a.created_at) - +new Date(b.created_at));
+  const callDate = new Map(calls.map((c) => [c.id, c.ended_at || c.scheduled_at || c.created_at]));
   const theirs = actions.filter((x) => x.owner === "founder" && x.status === "open");
   const meta = (k: string) => metricMeta(k, metrics.find((x) => x.metric === k));
   const tile = (k: string) => { const pts = series(k); const last = pts.at(-1), prev = pts.at(-2); const { label, unit } = meta(k); const f = fmtFor(unit); const up = last && prev ? last.value >= prev.value : null;
@@ -55,17 +60,28 @@ export default async function CoachingPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">{["revenue_30d", "ad_spend_30d", "net_margin_pct", "cac"].map(tile)}</div>
 
       <div className="grid lg:grid-cols-2 gap-4 mb-4">
-        <Card title="Your action items" hint="Agreed on calls. Tick them off as you go.">
+        <Card title={`Your action items${openMine.length ? ` (${openMine.length} open)` : ""}`} hint="What you committed to on your calls. Tick them off as you go.">
           {mine.length ? (
             <ul className="divide-y divide-line">
-              {[...mine.filter((x) => x.status === "open"), ...mine.filter((x) => x.status !== "open")].map((x) => (
-                <li key={x.id} className={`py-2.5 flex items-start gap-3 text-sm ${x.status !== "open" ? "opacity-50" : ""}`}>
-                  <div className="flex-1 min-w-0"><div className={x.status === "done" ? "line-through" : "text-ink"}>{x.text}</div>{x.due_on && <div className={`text-xs ${x.status === "open" && new Date(x.due_on) < nowDate ? "text-bad" : "text-mute"}`}>due {fmtD(x.due_on)}</div>}</div>
-                  <MyItemToggle id={x.id} status={x.status} canEdit={canEdit} />
-                </li>
-              ))}
+              {sortedMine.map((x) => {
+                const overdue = x.status === "open" && x.due_on && new Date(x.due_on) < nowDate;
+                const from = x.source_call_id ? callDate.get(x.source_call_id) : null;
+                return (
+                  <li key={x.id} className={`py-2.5 flex items-start gap-3 text-sm ${x.status !== "open" ? "opacity-50" : ""}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className={x.status === "done" ? "line-through" : "text-ink"}>{x.text}</div>
+                      <div className="text-xs mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        {overdue && <Pill tone="bad">overdue</Pill>}
+                        {x.due_on && <span className={overdue ? "text-bad" : "text-mute"}>due {fmtD(x.due_on)}</span>}
+                        {from && <span className="text-mute">{x.due_on ? "· " : ""}from your {fmtD(from)} call</span>}
+                      </div>
+                    </div>
+                    <MyItemToggle id={x.id} status={x.status} canEdit={canEdit} />
+                  </li>
+                );
+              })}
             </ul>
-          ) : <p className="text-sm text-mute">Nothing yet. Commitments from your calls appear here.</p>}
+          ) : <p className="text-sm text-mute">Nothing yet. What you agree to on a call shows up here within minutes of it ending.</p>}
         </Card>
         <Card title="What the RC team owes you">
           {theirs.length ? <ul className="space-y-2 text-sm">{theirs.map((x) => <li key={x.id} className="flex gap-2"><Pill tone="gold">RC team</Pill><span className="text-ink">{x.text}{x.due_on && <span className="text-mute"> · due {fmtD(x.due_on)}</span>}</span></li>)}</ul> : <p className="text-sm text-mute">Nothing open.</p>}
