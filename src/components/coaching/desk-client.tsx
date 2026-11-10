@@ -168,10 +168,10 @@ export function SyncCalls({ studentId }: { studentId?: string } = {}) {
         className="btn btn-ghost"
         disabled={pending}
         onClick={() => act(() => A.syncCalls(studentId), (r) => {
-          const d = (r as { data?: { configured: boolean; students: number; imported: number; failed: number } }).data;
+          const d = (r as { data?: { configured: boolean; bookings: number; imported: number; skipped: number; failed: number } }).data;
           if (!d?.configured) setMsg("Fireflies isn't connected yet.");
           else if (d.imported) setMsg(`${d.imported} new call${d.imported > 1 ? "s" : ""} imported. Action items are on the student's Coaching page.`);
-          else setMsg(`Up to date — nothing new across ${d.students} student${d.students === 1 ? "" : "s"}.${d.failed ? ` ${d.failed} lookup${d.failed > 1 ? "s" : ""} failed; see the integration log.` : ""}`);
+          else setMsg(`Nothing new. Checked ${d.bookings} booked call${d.bookings === 1 ? "" : "s"} still waiting on a transcript.${d.skipped ? ` ${d.skipped} other meeting${d.skipped > 1 ? "s" : ""} in those windows weren't coaching calls and were left alone.` : ""}${d.failed ? ` ${d.failed} lookup${d.failed > 1 ? "s" : ""} failed; see the integration log.` : ""}`);
         })}
       >
         <RefreshCw size={14} className={pending ? "animate-spin" : ""} /> {pending ? "Checking Fireflies…" : "Check for new calls"}

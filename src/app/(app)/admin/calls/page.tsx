@@ -46,15 +46,18 @@ export default async function CallsPage() {
         </tbody></table></div>
       </Card>
       <div className="grid lg:grid-cols-2 gap-4">
-        <Card title="Fireflies" hint="New coaching calls are pulled in automatically — only meetings a student attended, matched on their email. No other meeting in these workspaces is ever fetched.">
+        <Card title="Fireflies" hint="Coaching calls are pulled in automatically. A transcript is only stored when it matches a Private Circle slot booked in Cal.com and a renaissancecommerce.com address hosted or attended it — so nothing else recorded in these workspaces can be imported.">
           <div className="mb-4">
             <div className="label mb-2">Connected accounts</div>
             {accounts.length ? (
               <ul className="space-y-1.5 text-xs">
                 {accounts.map((a) => (
                   <li key={a.label} className="flex items-start gap-2">
-                    <Pill tone={a.ok ? "good" : "bad"}>{a.ok ? "connected" : "failing"}</Pill>
-                    <span className="text-dim min-w-0">{a.ok ? (a.emails.length ? a.emails.join(", ") : "workspace reachable, no members listed") : a.error}<span className="text-mute"> · {a.label}</span></span>
+                    <Pill tone={!a.ok ? "bad" : a.coaching.length ? "good" : "warn"}>{!a.ok ? "failing" : a.coaching.length ? "connected" : "no coach"}</Pill>
+                    <span className="text-dim min-w-0">
+                      {!a.ok ? a.error : a.coaching.length ? `syncing calls for ${a.coaching.join(", ")}` : "no renaissancecommerce.com address in this workspace — nothing will be imported from it"}
+                      <span className="text-mute"> · {a.label}</span>
+                    </span>
                   </li>
                 ))}
               </ul>

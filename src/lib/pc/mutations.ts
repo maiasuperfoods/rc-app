@@ -166,11 +166,30 @@ export async function firefliesAccounts() {
     const label = `key ${i + 1} (…${key.slice(-4)})`;
     try {
       const { users } = await fireflies<{ users: { email: string | null; name: string | null }[] }>(q, {}, key);
-      return { label, ok: true as const, emails: (users ?? []).map((u) => (u.email ?? "").toLowerCase()).filter(Boolean) };
+      const emails = (users ?? []).map((u) => (u.email ?? "").toLowerCase()).filter(Boolean);
+      return { label, ok: true as const, emails, coaching: emails.filter(isFounderEmail) };
     } catch (e) {
-      return { label, ok: false as const, error: (e as Error).message, emails: [] as string[] };
+      return { label, ok: false as const, error: (e as Error).message, emails: [] as string[], coaching: [] as string[] };
     }
   }));
+}
+
+/**
+ * The addresses a Fireflies lookup is allowed to ask about: the coaching accounts in that key's
+ * workspace. COACHING_EMAILS overrides it when the workspace roster doesn't name them.
+ *
+ * This is the server-side half of the filter and it carries real weight. A workspace here can hold
+ * hundreds of customer-support recordings a day — a single afternoon returned fifty, every one a
+ * support call with a customer's phone number in the title. Asking Fireflies for a time window and
+ * filtering afterwards would let those fill the result limit and push the actual coaching call off
+ * the end of the list. So the question put to Fireflies is always "meetings this coach was in",
+ * never "meetings in this window".
+ */
+async function coachingEmails(key: string): Promise<string[]> {
+  const override = (process.env.COACHING_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  if (override.length) return override;
+  const { users } = await fireflies<{ users: { email: string | null }[] }>(`query { users { email } }`, {}, key);
+  return (users ?? []).map((u) => (u.email ?? "").toLowerCase()).filter((e) => e && isFounderEmail(e));
 }
 
 type FfTranscript = { id: string; title: string | null; date: number | null; duration: number | null; audio_url: string | null; video_url: string | null; participants: string[] | null; summary: { overview?: string } | null; sentences: { speaker_name: string; text: string }[] | null };
@@ -205,64 +224,94 @@ export async function importFireflies(meetingId: string, forStudentId?: string, 
 }
 
 /**
- * Bring in every new coaching call from Fireflies, without a coach pasting meeting ids.
+ * Bring in new coaching calls from Fireflies, without a coach pasting meeting ids.
  *
- * This asks Fireflies **per student** — `participants: [their email, ...their alt emails]` — rather
- * than for recent meetings in general. That distinction is the safeguard, not an optimisation: the
- * same Fireflies workspace also records customer-support calls carrying customer names, billing
- * disputes and occasionally personal health details. A roster-scoped query cannot return one, so
- * those transcripts can never reach this database. Do not widen this to an unfiltered
- * `transcripts(limit:)` query.
+ * Two conditions must BOTH hold before a transcript is stored, and the pairing is deliberate:
  *
- * Each new meeting then takes the normal path — ingest → processCall — so the commitments made on
- * the call land as action items on that student's Coaching page.
+ *  1. Fireflies is only ever asked for meetings a coaching address was in — the filter goes to the
+ *     API, not applied to the results (see coachingEmails for why that ordering matters).
+ *  2. It lines up with a Private Circle call booked through Cal.com — an existing pc_calls row
+ *     with a student and a scheduled time, still waiting for its transcript.
+ *
+ * Neither alone is safe. The same Fireflies workspace also carries the holdco's internal standups
+ * and its customer-support calls — the latter full of customer names, billing disputes and the
+ * occasional medical detail. Some sit in the same hour as a coaching call, and a holdco team
+ * member's personal address appears on the student roster, so matching on student email alone
+ * pulls in internal meetings while *missing* real coaching calls (which are often recorded with
+ * only the coach in the attendee list). Requiring a coaching host and a booking excludes both.
+ *
+ * Anything that doesn't match is left in Fireflies untouched; a coach imports it by id if needed.
+ *
+ * Each new transcript then takes the normal path — ingest → processCall — so the commitments made
+ * on the call land as action items on that student's Coaching page.
  */
 export async function syncFireflies(opts: { days?: number; studentId?: string } = {}) {
   const keys = firefliesKeys();
-  if (!keys.length) return { configured: false, students: 0, found: 0, imported: 0, failed: 0 };
+  if (!keys.length) return { configured: false, bookings: 0, found: 0, imported: 0, skipped: 0, failed: 0 };
   const sb = pc();
-  const days = opts.days ?? 30;
-  const from = new Date(Date.now() - days * 86400e3).toISOString();
-  let q = sb.from("pc_students").select("id,email,alt_emails,status").neq("status", "archived");
-  if (opts.studentId) q = q.eq("id", opts.studentId);
-  const { data: students, error } = await q;
+  const days = opts.days ?? 60;
+  const since = new Date(Date.now() - days * 86400e3).toISOString();
+
+  // Bookings still waiting for their transcript. These are what a Fireflies meeting has to match.
+  let q = sb.from("pc_calls").select("id,student_id,scheduled_at,ended_at").not("student_id", "is", null).is("transcript", null).neq("status", "cancelled").gte("scheduled_at", since).lte("scheduled_at", new Date().toISOString());
+  if (opts.studentId) q = q.eq("student_id", opts.studentId);
+  const { data: bookings, error } = await q;
   if (error) throw new Error(error.message);
 
-  // Meetings already stored, so a re-run is cheap and never imports the same call twice.
+  // Already stored, so a re-run is cheap and never imports the same meeting twice.
   const { data: seen } = await sb.from("pc_calls").select("external_id").eq("source", "fireflies").not("external_id", "is", null);
   const known = new Set((seen ?? []).map((r) => r.external_id as string));
 
-  const LIST = `query L($emails: [String], $from: DateTime, $limit: Int) { transcripts(participants: $emails, fromDate: $from, limit: $limit) { id } }`;
-  let found = 0, imported = 0, failed = 0;
-  for (const s of students ?? []) {
-    const emails = [...new Set([s.email as string, ...(((s.alt_emails as string[] | null) ?? []))].filter(Boolean).map((e) => e.toLowerCase()))];
-    if (!emails.length) continue;
-    // A coaching call sits in whichever coach's workspace recorded it, so ask every connected account.
+  const LIST = `query L($emails: [String], $from: DateTime, $to: DateTime, $limit: Int) { transcripts(participants: $emails, fromDate: $from, toDate: $to, limit: $limit) { id title date host_email organizer_email participants } }`;
+  type Cand = { id: string; title: string | null; date: number | null; host_email: string | null; organizer_email: string | null; participants: string[] | null };
+
+  // Resolve each key's coaching addresses once. A key whose workspace has none imports nothing,
+  // which is the right outcome for a key that belongs to some other part of the business.
+  const coaches = new Map<string, string[]>();
+  for (const key of keys) {
+    try { coaches.set(key, await coachingEmails(key)); } catch { coaches.set(key, []); }
+  }
+
+  let found = 0, imported = 0, skipped = 0, failed = 0;
+  for (const b of bookings ?? []) {
+    const slot = +new Date((b.scheduled_at as string) ?? (b.ended_at as string));
+    if (!slot) continue;
+    // A call starts at its slot and runs over; allow a late start and a long session.
+    const from = new Date(slot - 30 * 60e3).toISOString();
+    const to = new Date(slot + 4 * 3600e3).toISOString();
     for (const key of keys) {
-      let list: { id: string }[] = [];
+      const emails = coaches.get(key) ?? [];
+      if (!emails.length) continue;
+      let list: Cand[] = [];
       try {
-        ({ transcripts: list } = await fireflies<{ transcripts: { id: string }[] }>(LIST, { emails, from, limit: 50 }, key));
+        ({ transcripts: list } = await fireflies<{ transcripts: Cand[] }>(LIST, { emails, from, to, limit: 50 }, key));
       } catch (e) {
         failed++;
-        await pcLog("call.fireflies.sync.failed", { account: `…${key.slice(-4)}`, error: (e as Error).message, by: "rc-app" }, s.id as string);
+        await pcLog("call.fireflies.sync.failed", { account: `…${key.slice(-4)}`, error: (e as Error).message, by: "rc-app" }, b.student_id as string);
         continue;
       }
-      for (const t of list ?? []) {
-        if (known.has(t.id)) continue;
-        found++;
-        try {
-          await importFireflies(t.id, s.id as string, key);
-          known.add(t.id);
-          imported++;
-        } catch (e) {
-          failed++;
-          await pcLog("call.fireflies.sync.failed", { meetingId: t.id, error: (e as Error).message, by: "rc-app" }, s.id as string);
-        }
+      const fresh = (list ?? []).filter((t) => !known.has(t.id));
+      // Condition 2: a coaching address ran or attended it. Everything else in this workspace —
+      // holdco standups, support calls — fails here even when it falls in the same hour.
+      const ours = fresh.filter((t) => [t.host_email, t.organizer_email, ...(t.participants ?? [])].some((e) => isFounderEmail(e)));
+      skipped += fresh.length - ours.length;
+      if (!ours.length) continue;
+      // Closest start to the booked slot wins, so two coaching calls in one window don't cross over.
+      const best = ours.sort((a, c) => Math.abs((a.date ?? 0) - slot) - Math.abs((c.date ?? 0) - slot))[0];
+      found++;
+      try {
+        await importFireflies(best.id, b.student_id as string, key);
+        known.add(best.id);
+        imported++;
+        break; // this booking is served; don't look in the other accounts
+      } catch (e) {
+        failed++;
+        await pcLog("call.fireflies.sync.failed", { meetingId: best.id, error: (e as Error).message, by: "rc-app" }, b.student_id as string);
       }
     }
   }
-  if (imported || failed) await pcLog("call.fireflies.synced", { accounts: keys.length, students: (students ?? []).length, found, imported, failed, days, by: "rc-app" });
-  return { configured: true, students: (students ?? []).length, found, imported, failed };
+  if (imported || failed) await pcLog("call.fireflies.synced", { accounts: keys.length, bookings: (bookings ?? []).length, found, imported, skipped, failed, days, by: "rc-app" });
+  return { configured: true, bookings: (bookings ?? []).length, found, imported, skipped, failed };
 }
 
 async function findStudentByEmails(emails: string[]) {
