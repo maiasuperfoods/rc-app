@@ -142,6 +142,22 @@ async function postAction(body: Record<string, unknown>) {
       return { ok: true };
     }
 
+    case "import-url": {
+      // copy an image or short clip from a public https link (e.g. an AI generator's result) into lesson-images/
+      const url = str(body.url, 2000) ?? "";
+      if (!/^https:\/\//.test(url)) throw new Error("https link required");
+      const r = await fetch(url);
+      if (!r.ok || !r.body) throw new Error(`Could not download (${r.status})`);
+      const type = (r.headers.get("content-type") ?? "").split(";")[0];
+      if (!/^(image|video)\//.test(type)) throw new Error("Not an image or video");
+      const ext = ({ "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "video/mp4": "mp4", "video/webm": "webm" } as Record<string, string>)[type];
+      if (!ext) throw new Error(`Unsupported type ${type}`);
+      const path = `lesson-images/${crypto.randomUUID()}-${safeName(str(body.name, 80) ?? "media")}.${ext}`;
+      const { error } = await sb.storage.from(BUCKET).upload(path, r.body as unknown as ReadableStream, { contentType: type, upsert: false, duplex: "half" } as never);
+      if (error) throw error;
+      return { path };
+    }
+
     case "upload-url": {
       // direct-to-storage upload, so big videos never pass through the app server
       const folder = body.purpose === "video" ? "videos" : body.purpose === "category" ? "categories" : body.purpose === "lesson-image" ? "lesson-images" : null;
