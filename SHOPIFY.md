@@ -10,7 +10,7 @@ Once, to point the CLI at the right app:
 ```bash
 npm install -g @shopify/cli@latest
 shopify auth login                      # sign in as the account that owns the app
-shopify app config link --client-id 984613b791c6a370c81a7f3208eb3ca1
+shopify app config link --client-id 7d43cd3486d04d91fa6f682990d3633e
 ```
 
 `config link` will offer to overwrite `shopify.app.toml`. **Decline** — or if it has already

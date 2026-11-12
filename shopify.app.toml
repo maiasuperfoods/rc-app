@@ -7,7 +7,7 @@
 # client_id is the app's public identifier, not a secret. The client secret lives only in Vercel
 # as SHOPIFY_CLIENT_SECRET and must never appear in this file.
 
-client_id = "984613b791c6a370c81a7f3208eb3ca1"
+client_id = "7d43cd3486d04d91fa6f682990d3633e"
 name = "Renaissance Commerce inc."
 handle = "renaissance-commerce"
 application_url = "https://app.renaissancecommerce.com"
