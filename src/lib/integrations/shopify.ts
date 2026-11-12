@@ -2,7 +2,11 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import type { CohortRow, DailyBusinessMetrics, InventoryPosition, Product, Sku } from "@/lib/types";
 import { plainError, type Connector, type Credentials, type ShopifySync } from "./types";
 
-const API_VERSION = "2025-10";
+// 2025-10 stopped being accessible on 16 Oct 2026. A request pinned to an unsupported version
+// doesn't fail — Shopify quietly serves it from the oldest accessible version instead, so the app
+// drifts onto a schema nobody chose. Keep this on a supported version and in step with
+// `api_version` in shopify.app.toml.
+const API_VERSION = "2026-10";
 /**
  * Least-privilege scope set. Every scope here is exercised by the queries below:
  *   read_orders / read_all_orders  revenue, refunds, COGS, cohorts (history beyond 60 days)

@@ -33,7 +33,7 @@ the app. `shopify app config push` no longer exists.
 | App URL | `https://app.renaissancecommerce.com` |
 | Redirect URL | `https://app.renaissancecommerce.com/api/integrations/shopify/callback` |
 | Webhook endpoint | `/api/webhooks/shopify` — `app/uninstalled` plus all three compliance topics |
-| Webhook API version | `2025-10` |
+| Webhook API version | `2026-10` |
 | Scopes | `read_orders, read_all_orders, read_products, read_inventory, read_customers` |
 | Embedded | `true` |
 
