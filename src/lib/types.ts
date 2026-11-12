@@ -315,3 +315,28 @@ export interface WbrMetrics {
   subscriptionChurn: number | null;
   ticketsPerHundredOrders: number | null;
 }
+
+// ---- Weekly Business Review working state --------------------------------
+
+export type WbrItemType = "task" | "issue" | "need" | "decision";
+export interface WbrItem {
+  id: string;
+  type: WbrItemType;
+  title: string;
+  owner: string;
+  due: string | null; // ISO date
+  status: "open" | "done" | "parked";
+  note: string;
+  week: string; // Monday of the week it was raised in
+  createdAt: string;
+  closedAt: string | null;
+}
+
+/** Everything a brand types into its weekly review: targets, who owns what, the line on each exception, and the board. One document per brand. */
+export interface WbrState {
+  targets: Record<string, number>; // kpi id → target
+  owners: Record<string, string>; // scorecard group id → name
+  notes: Record<string, Record<string, string>>; // weekStart → kpi id → one line on cause and next step
+  items: WbrItem[];
+}
+export const emptyWbrState = (): WbrState => ({ targets: {}, owners: {}, notes: {}, items: [] });

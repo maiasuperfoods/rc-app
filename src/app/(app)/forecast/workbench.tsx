@@ -5,10 +5,12 @@ import { Card, Field, Pill, fmtMoney } from "@/components/ui";
 import { runForecast, runScenarios, type ForecastInputs, type ForecastResult, type LineInputs, type PoolInputs } from "@/lib/calc/forecast";
 import { saveForecastInputs } from "@/app/actions";
 import { Plus, Trash2 } from "lucide-react";
+import type { ForecastActuals } from "@/lib/calc/forecast-actuals";
+import { QuickSetup } from "./quick-setup";
 
 type Tab = "inputs" | "lines" | "cohorts" | "inventory" | "cash" | "monthly" | "scenarios" | "committed";
 const TABS: [Tab, string][] = [
-  ["inputs", "1 · Inputs"],
+  ["inputs", "1 · Setup"],
   ["lines", "2 · Lines weekly"],
   ["cohorts", "3 · Cohort engine"],
   ["inventory", "4 · Inventory & POs"],
@@ -24,7 +26,8 @@ const x2 = (n: number) => (n ? `${n.toFixed(2)}×` : "–");
 const pct1 = (n: number) => (n ? `${(n * 100).toFixed(1)}%` : "–");
 const uid = () => Math.random().toString(36).slice(2, 8);
 
-export function ForecastWorkbench({ initial, isNew, tenantName, canEdit = true }: { initial: ForecastInputs; isNew: boolean; tenantName: string; canEdit?: boolean }) {
+export function ForecastWorkbench({ initial, isNew, tenantName, actuals, canEdit = true }: { initial: ForecastInputs; isNew: boolean; tenantName: string; actuals: ForecastActuals; canEdit?: boolean }) {
+  const [advanced, setAdvanced] = useState(false);
   const [inp, setInp] = useState<ForecastInputs>(initial);
   const [tab, setTab] = useState<Tab>(isNew ? "inputs" : "cash");
   const [pending, start] = useTransition();
@@ -44,7 +47,16 @@ export function ForecastWorkbench({ initial, isNew, tenantName, canEdit = true }
         {canEdit ? <button className="btn btn-primary" onClick={save} disabled={pending}>{pending ? "Saving…" : "Save model"}</button> : <Pill tone="mute">read-only · changes here are not saved</Pill>}
       </div>
 
-      {tab === "inputs" && <InputsTab inp={inp} set={setInp} />}
+      {tab === "inputs" && (
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" aria-pressed={!advanced} className={`btn ${!advanced ? "btn-secondary" : "btn-ghost"}`} onClick={() => setAdvanced(false)}>Quick setup</button>
+            <button type="button" aria-pressed={advanced} className={`btn ${advanced ? "btn-secondary" : "btn-ghost"}`} onClick={() => setAdvanced(true)}>All inputs</button>
+            <span className="text-xs text-mute">{advanced ? "Every assumption in the model: ramp stages, payment timing, upsells, retention curves, existing cohorts." : "The short version. Open All inputs when you want to tune the detail."}</span>
+          </div>
+          {advanced ? <InputsTab inp={inp} set={setInp} /> : <QuickSetup inp={inp} set={setInp} actuals={actuals} canEdit={canEdit} />}
+        </>
+      )}
       {tab === "lines" && <LinesTab res={res} inp={inp} set={setInp} />}
       {tab === "cohorts" && <CohortsTab res={res} />}
       {tab === "inventory" && <InventoryTab res={res} inp={inp} />}

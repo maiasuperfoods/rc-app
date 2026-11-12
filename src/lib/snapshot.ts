@@ -15,6 +15,8 @@ export interface TenantSnapshot {
   cohorts: CohortRow[];
   integrations: IntegrationStatus[];
   week: { start: string; end: string; metrics: WbrMetrics; previous: WbrMetrics; prevStart: string; prevEnd: string };
+  /** Complete weeks with data, oldest first, ending with the week under review. Up to twelve. */
+  history: { start: string; end: string; metrics: WbrMetrics }[];
   monthRevenue: number;
   monthSpend: number;
   forecasts: SkuForecast[];
@@ -61,6 +63,12 @@ export async function buildSnapshot(db: DataSource, tenant: Tenant, today = new 
   const prevStart = addDays(prevEnd, -6);
   const metrics = rollupWeek(daily, support, costs, start, end);
   const previous = rollupWeek(daily, support, costs, prevStart, prevEnd);
+  const history: TenantSnapshot["history"] = [];
+  for (let i = 11; i >= 0; i--) {
+    const e = addDays(end, -7 * i);
+    const st = addDays(e, -6);
+    if (daily.some((d) => d.date >= st && d.date <= e)) history.push({ start: st, end: e, metrics: rollupWeek(daily, support, costs, st, e) });
+  }
 
   const last30 = daily.filter((d) => d.date >= isoDate(new Date(today.getTime() - 30 * 86400000)));
   const monthRevenue = last30.reduce((a, d) => a + d.revenue, 0);
@@ -97,5 +105,5 @@ export async function buildSnapshot(db: DataSource, tenant: Tenant, today = new 
 
   const commentary = templateCommentary(tenant, metrics, previous, ue.blended?.allowableCac ?? null, flags);
 
-  return { tenant, brandBook, ue, daily, support, cohorts, integrations, week: { start, end, metrics, previous, prevStart, prevEnd }, monthRevenue, monthSpend, forecasts, creative, flags, commentary, chargebackRate };
+  return { tenant, brandBook, ue, daily, support, cohorts, integrations, week: { start, end, metrics, previous, prevStart, prevEnd }, history, monthRevenue, monthSpend, forecasts, creative, flags, commentary, chargebackRate };
 }
