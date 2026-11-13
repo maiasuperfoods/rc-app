@@ -109,7 +109,7 @@ async function pullAndWrite(db: SupabaseClient, tenantId: string, provider: Prov
     }
     case "triple_whale": {
       const rows = await tripleWhale.pull(tenantId, creds, from, to);
-      return up("daily_business_metrics", rows.map((d) => ({ tenant_id: tenantId, date: d.date, revenue: d.revenue, orders: d.orders, new_customers: d.newCustomers, returning_customers: d.returningCustomers, ad_spend: d.adSpend, refunds: d.refunds, cogs: d.cogs, source: "triple_whale" })), "tenant_id,date");
+      return up("daily_business_metrics", rows.map((d) => ({ tenant_id: tenantId, date: d.date, revenue: d.revenue, orders: d.orders, new_customers: d.newCustomers, returning_customers: d.returningCustomers, ad_spend: d.adSpend, refunds: d.refunds, cogs: d.cogs, new_customer_revenue: d.newCustomerRevenue ?? null, source: "triple_whale" })), "tenant_id,date");
     }
     case "lifetimely": {
       const rows = await lifetimely.pull(tenantId, creds, from, to);

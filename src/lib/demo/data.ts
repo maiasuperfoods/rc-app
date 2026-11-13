@@ -232,6 +232,7 @@ function series(tenantId: string, seed: number, base: { revenue: number; spend: 
       adSpend: Math.round(spend),
       refunds: Math.round(revenue * (0.03 + r() * 0.02)),
       cogs: Math.round(revenue * base.cogsPct),
+      newCustomerRevenue: Math.round(newCustomers * base.aov * (0.5 + r() * 0.08)),
     });
   }
   return out;

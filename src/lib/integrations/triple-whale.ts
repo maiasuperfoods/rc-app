@@ -54,10 +54,11 @@ export const tripleWhale: Connector<TripleWhaleSync> = {
         const revenue = pick(p, ["sales", "totalSales", "shopifySales"]) ?? 0;
         const orders = pick(p, ["orders", "shopifyOrders"]) ?? 0;
         const newCustomers = pick(p, ["newCustomers", "newCustomerOrders", "ncOrders"]) ?? 0;
+        const newCustomerRevenue = pick(p, ["newCustomerSales", "newCustomersSales", "newCustomerRevenue", "newCustomersRevenue", "ncRevenue", "ncSales"]);
         const adSpend = pick(p, ["blendedAds", "blendedAdSpend", "adSpend", "spend"]) ?? 0;
         const refunds = pick(p, ["refunds", "totalRefunds"]) ?? 0;
         const cogs = pick(p, ["cogs", "totalCogs", "productCost"]) ?? 0;
-        out.push({ tenantId, date: day, revenue, orders, newCustomers, returningCustomers: Math.max(0, orders - newCustomers), adSpend, refunds, cogs });
+        out.push({ tenantId, date: day, revenue, orders, newCustomers, returningCustomers: Math.max(0, orders - newCustomers), adSpend, refunds, cogs, newCustomerRevenue });
         d.setUTCDate(d.getUTCDate() + 1);
         await new Promise((r) => setTimeout(r, 250)); // polite pacing
       }

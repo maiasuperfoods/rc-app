@@ -168,6 +168,8 @@ export interface DailyBusinessMetrics {
   newCustomers: number;
   returningCustomers: number;
   adSpend: number; // blended across channels
+  /** First-order revenue from new customers, as Triple Whale reports it. Null when no source supplies it. */
+  newCustomerRevenue?: number | null;
   refunds: number;
   cogs: number;
 }

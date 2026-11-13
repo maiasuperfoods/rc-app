@@ -210,7 +210,7 @@ export class SupabaseSource implements DataSource {
 
   async dailyMetrics(tenantId: string, fromDate: string): Promise<DailyBusinessMetrics[]> {
     const rows = await this.q<Row[]>(this.db.from("daily_business_metrics").select("*").eq("tenant_id", tenantId).gte("date", fromDate).order("date"));
-    return rows.map((r) => ({ tenantId, date: r.date, revenue: num(r.revenue), orders: num(r.orders), newCustomers: num(r.new_customers), returningCustomers: num(r.returning_customers), adSpend: num(r.ad_spend), refunds: num(r.refunds), cogs: num(r.cogs) }));
+    return rows.map((r) => ({ tenantId, date: r.date, revenue: num(r.revenue), orders: num(r.orders), newCustomers: num(r.new_customers), returningCustomers: num(r.returning_customers), adSpend: num(r.ad_spend), refunds: num(r.refunds), cogs: num(r.cogs), newCustomerRevenue: r.new_customer_revenue == null ? null : num(r.new_customer_revenue) }));
   }
   async supportMetrics(tenantId: string, fromDate: string): Promise<DailySupportMetrics[]> {
     const rows = await this.q<Row[]>(this.db.from("daily_support_metrics").select("*").eq("tenant_id", tenantId).gte("date", fromDate).order("date"));

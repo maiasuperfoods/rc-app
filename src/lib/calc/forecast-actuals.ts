@@ -3,8 +3,7 @@
  *
  * Each value carries where it came from. A null means nothing connected can supply it, and the
  * Forecast shows that field as one the student has to fill in. Nothing here is estimated beyond
- * what its label says: the one derived figure is new-customer ROAS, which is new customers times
- * average order value over ad spend, because new-customer revenue itself is not stored.
+ * what its label says.
  *
  * Pure functions, no I/O.
  */
@@ -60,6 +59,9 @@ export function buildForecastActuals(a: {
   const days = rows.length;
   const revenue = sum((r) => r.revenue), orders = sum((r) => r.orders), spend = sum((r) => r.adSpend), nc = sum((r) => r.newCustomers), refunds = sum((r) => r.refunds);
   const win = `last ${days} days`;
+  // NC-ROAS is Triple Whale's own new-customer revenue over ad spend, on the days it reported one. It is never estimated.
+  const ncRows = rows.filter((r) => r.newCustomerRevenue != null);
+  const ncRev = ncRows.reduce((t, r) => t + (r.newCustomerRevenue ?? 0), 0), ncSpend = ncRows.reduce((t, r) => t + r.adSpend, 0);
   const aov = orders > 0 ? revenue / orders : null;
 
   // Inventory pools: one per SKU that Shopify holds stock for, biggest first.
@@ -94,7 +96,7 @@ export function buildForecastActuals(a: {
   return {
     days,
     dailySpend: days && spend > 0 ? { value: Math.round(spend / days), source: `Triple Whale · ${win}` } : null,
-    ncRoas: spend > 0 && nc > 0 && aov ? { value: Math.round(((nc * aov) / spend) * 100) / 100, source: `your store: new customers × order value ÷ ad spend, ${win}` } : null,
+    ncRoas: ncSpend > 0 && ncRev > 0 ? { value: Math.round((ncRev / ncSpend) * 100) / 100, source: `Triple Whale · ${win}` } : null,
     aov: aov ? { value: Math.round(aov * 100) / 100, source: `Shopify · ${win}` } : null,
     refundRate: revenue > 0 ? { value: Math.round((refunds / revenue) * 1000) / 1000, source: `Shopify · ${win}` } : null,
     processingRate: a.costs && a.costsAreSaved ? { value: a.costs.processingRate + a.costs.chargebackRate, source: "your Unit Economics" } : null,
@@ -129,7 +131,11 @@ export function applyActuals(inp: ForecastInputs, a: ForecastActuals, opts: { se
       line.dailySpendTarget2 = target; line.target2Week = 7;
     }
   }
-  if (a.ncRoas) { line.roasStart = a.ncRoas.value; line.roasScale = a.ncRoas.value; }
+  if (a.ncRoas) {
+    line.roasStart = a.ncRoas.value;
+    // The target is the student's call. A first forecast starts it level with today so the plan is not flattered.
+    if (opts.seedTargets) { line.roasScale = a.ncRoas.value; line.roasScaleWeek = line.target1Week; }
+  }
   if (a.aov) { line.firstOrderAov = a.aov.value; line.rebillRevenue = a.aov.value; }
   if (a.fulfillmentPerOrder) { line.fulfillmentNew = a.fulfillmentPerOrder.value; line.fulfillmentRebill = a.fulfillmentPerOrder.value; }
   if (a.pools) {

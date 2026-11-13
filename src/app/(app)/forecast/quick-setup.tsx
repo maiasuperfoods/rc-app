@@ -96,7 +96,10 @@ export function QuickSetup({ inp, set, actuals, canEdit }: { inp: ForecastInputs
             <Num label="Target daily ad spend" mine prefix="$" step={50} value={line.dailySpendTarget1} onChange={(v) => setLine({ dailySpendTarget1: v, dailySpendTarget2: v })} disabled={!canEdit} />
           </Row>
           <Row label="Weeks to get there" help="Spend rises in even steps from today to the target." mine>
-            <Num label="Weeks to reach the target" mine suffix="wks" value={targetWeeks} onChange={(v) => { const w = line.rampStartWeek + Math.max(1, Math.round(v)); setLine({ target1Week: w, target2Week: w + 1, dailySpendTarget2: line.dailySpendTarget1 }); }} disabled={!canEdit} />
+            <Num label="Weeks to reach the target" mine suffix="wks" value={targetWeeks} onChange={(v) => { const w = line.rampStartWeek + Math.max(1, Math.round(v)); setLine({ target1Week: w, target2Week: w + 1, dailySpendTarget2: line.dailySpendTarget1, roasScaleWeek: w }); }} disabled={!canEdit} />
+          </Row>
+          <Row label="Target NC-ROAS" help={`New-customer return on ad spend once you reach your target spend. It usually falls as you scale${actuals.ncRoas ? `; today it is ${actuals.ncRoas.value.toFixed(2)}×` : ""}.`} mine>
+            <Num label="Target NC-ROAS" mine step={0.05} suffix="×" value={line.roasScale} onChange={(v) => setLine({ roasScale: v, roasScaleWeek: line.target1Week })} disabled={!canEdit} />
           </Row>
           <Row label="Fixed costs per month" help="Salaries, software, rent: everything you pay whether or not you sell." mine={!actuals.fixedOpexMonthly} source={actuals.fixedOpexMonthly?.source} drift={drift(inp.fixedOpexMonthly, actuals.fixedOpexMonthly, money, (v) => set({ ...inp, fixedOpexMonthly: v }))}>
             <Num label="Fixed costs per month" mine={!actuals.fixedOpexMonthly} prefix="$" step={100} value={inp.fixedOpexMonthly} onChange={(v) => set({ ...inp, fixedOpexMonthly: v })} disabled={!canEdit} />
@@ -108,8 +111,8 @@ export function QuickSetup({ inp, set, actuals, canEdit }: { inp: ForecastInputs
           <Row label="Daily ad spend today" mine={!actuals.dailySpend} source={actuals.dailySpend?.source} help={actuals.dailySpend ? undefined : "Connect Triple Whale or Meta, or type it."} drift={drift(line.dailySpendStart, actuals.dailySpend, money, (v) => setLine({ dailySpendStart: v }))}>
             <Num label="Daily ad spend today" mine={!actuals.dailySpend} prefix="$" step={50} value={line.dailySpendStart} onChange={(v) => setLine({ dailySpendStart: v })} disabled={!canEdit} />
           </Row>
-          <Row label="Return on ad spend, new customers (NC-ROAS)" mine={!actuals.ncRoas} source={actuals.ncRoas?.source} help={actuals.ncRoas ? undefined : "First-order revenue for every $1 of ads. 1.2 means $1.20 back."} drift={drift(line.roasScale, actuals.ncRoas, (v) => `${v.toFixed(2)}×`, (v) => setLine({ roasStart: v, roasScale: v }))}>
-            <Num label="New-customer ROAS" mine={!actuals.ncRoas} step={0.05} suffix="×" value={line.roasScale} onChange={(v) => setLine({ roasStart: v, roasScale: v })} disabled={!canEdit} />
+          <Row label="NC-ROAS today" mine={!actuals.ncRoas} source={actuals.ncRoas?.source} help={actuals.ncRoas ? undefined : "New-customer return on ad spend. Connect Triple Whale to read it, or type it: 1.2 means $1.20 of first-order revenue per $1 of ads."} drift={drift(line.roasStart, actuals.ncRoas, (v) => `${v.toFixed(2)}×`, (v) => setLine({ roasStart: v }))}>
+            <Num label="NC-ROAS today" mine={!actuals.ncRoas} step={0.05} suffix="×" value={line.roasStart} onChange={(v) => setLine({ roasStart: v })} disabled={!canEdit} />
           </Row>
           <Row label="Average order value (AOV)" mine={!actuals.aov} source={actuals.aov?.source} help={actuals.aov ? undefined : "Connect Shopify, or type what a typical order is worth."} drift={drift(line.firstOrderAov, actuals.aov, money, (v) => setLine({ firstOrderAov: v, rebillRevenue: v }))}>
             <Num label="Average order value" mine={!actuals.aov} prefix="$" step={0.5} value={line.firstOrderAov} onChange={(v) => setLine({ firstOrderAov: v, rebillRevenue: v })} disabled={!canEdit} />

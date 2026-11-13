@@ -58,8 +58,8 @@ export const KPIS: KpiDef[] = [
   { id: "newCustomers", group: "acquisition", name: "New customers", fmt: "int", good: "up", def: "First-time orders.", src: "Triple Whale", rule: "Below the weekly number the plan needs." },
   { id: "ncpa", group: "acquisition", name: "Cost per new customer", fmt: "money", good: "down", def: "Ad spend divided by new customers.", src: "Triple Whale", rule: "Above your allowable two weeks running: cut the worst ad sets, then raise it as an issue." },
   { id: "blendedRoas", group: "acquisition", name: "Blended ROAS", fmt: "x", good: "up", def: "Revenue divided by ad spend, all customers.", src: "Triple Whale and Shopify", rule: "Below the floor your margins can carry." },
-  { id: "ncAov", group: "acquisition", name: "First-order value", fmt: "money", good: "up", def: "New-customer revenue divided by new-customer orders.", src: "Triple Whale", rule: "Falls while cost per new customer holds or rises.", connect: "Needs new-customer revenue from Triple Whale, which the sync does not store yet." },
-  { id: "ncRoas", group: "acquisition", name: "First-order ROAS", fmt: "x", good: "up", def: "New-customer revenue divided by ad spend.", src: "Triple Whale", rule: "Below the floor that 90-day value can pay back.", connect: "Needs new-customer revenue from Triple Whale, which the sync does not store yet." },
+  { id: "ncAov", group: "acquisition", name: "First-order value (NC-AOV)", fmt: "money", good: "up", def: "New-customer revenue divided by new-customer orders.", src: "Triple Whale", rule: "Falls while cost per new customer holds or rises.", connect: "Connect Triple Whale on the Connections page; it supplies new-customer revenue." },
+  { id: "ncRoas", group: "acquisition", name: "NC-ROAS", fmt: "x", good: "up", def: "New-customer revenue divided by ad spend.", src: "Triple Whale", rule: "Below the floor that 90-day value can pay back.", connect: "Connect Triple Whale on the Connections page; it supplies new-customer revenue." },
 
   { id: "sessions", group: "funnel", name: "Sessions", fmt: "int", good: "up", def: "Store sessions for the week.", src: "Triple Whale pixel", rule: "Moves out of line with spend.", connect: "Needs session counts from the Triple Whale pixel, which the sync does not store yet." },
   { id: "cvr", group: "funnel", name: "Conversion rate", fmt: "pct1", good: "up", def: "Orders divided by sessions.", src: "Triple Whale pixel", rule: "A drop of 10% or more: check page, offer and checkout before blaming creative.", connect: "Needs session counts from the Triple Whale pixel." },
@@ -120,6 +120,16 @@ function weekly(id: string, w: WeekWindow, daily: DailyBusinessMetrics[], suppor
     case "newCustomers": return m.newCustomers;
     case "ncpa": return m.newCustomers > 0 ? m.ncpa : null;
     case "blendedRoas": return m.adSpend > 0 ? m.blendedRoas : null;
+    case "ncRoas": {
+      const nc = rows.filter((r) => r.newCustomerRevenue != null);
+      const spend = nc.reduce((a, r) => a + r.adSpend, 0);
+      return nc.length && spend > 0 ? nc.reduce((a, r) => a + (r.newCustomerRevenue ?? 0), 0) / spend : null;
+    }
+    case "ncAov": {
+      const nc = rows.filter((r) => r.newCustomerRevenue != null);
+      const n = nc.reduce((a, r) => a + r.newCustomers, 0);
+      return nc.length && n > 0 ? nc.reduce((a, r) => a + (r.newCustomerRevenue ?? 0), 0) / n : null;
+    }
     case "retShare": return m.orders > 0 ? rows.reduce((a, r) => a + r.returningCustomers, 0) / m.orders : null;
     case "tickets": return hasSupport && sup.length ? sup.reduce((a, r) => a + r.tickets, 0) : null;
     case "ticketsPer100": return hasSupport && sup.length && m.orders > 0 ? (sup.reduce((a, r) => a + r.tickets, 0) / m.orders) * 100 : null;
