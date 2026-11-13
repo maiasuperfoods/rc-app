@@ -173,7 +173,7 @@ function InputsTab({ inp, set }: { inp: ForecastInputs; set: (i: ForecastInputs)
         </Card>
       </div>
 
-      <Card title="Line economics" hint="One column per product line. Ramp = daily spend from start to first target, then to second target, then weekly growth." actions={<button className="btn btn-ghost" onClick={() => set({ ...inp, lines: [...inp.lines, { ...inp.lines[0], id: `line-${uid()}`, name: "New line", rampStartWeek: 6, preCohorts: [], longTailWeekly: 0, spendOverrides: {}, unitsPerNewOrder: {}, unitsPerRebillOrder: {}, upsellPoolId: null }] })}><Plus size={14} /> Line</button>}>
+      <Card title="Product economics" hint="One column per product. Ramp = daily spend from start to first target, then to second target, then weekly growth." actions={<button className="btn btn-ghost" onClick={() => set({ ...inp, lines: [...inp.lines, { ...inp.lines[0], id: `line-${uid()}`, name: "New product", rampStartWeek: 6, preCohorts: [], longTailWeekly: 0, spendOverrides: {}, unitsPerNewOrder: {}, unitsPerRebillOrder: {}, upsellPoolId: null }] })}><Plus size={14} /> Product</button>}>
         <div className="overflow-x-auto">
           <table className="table">
             <thead><tr><th>Input</th>{inp.lines.map((l, i) => <th key={l.id} className="num"><div className="flex items-center justify-end gap-2"><input className="input w-40 py-1" value={l.name} onChange={(e) => setLine(i, { name: e.target.value })} />{inp.lines.length > 1 && <button className="text-mute hover:text-bad" onClick={() => set({ ...inp, lines: inp.lines.filter((_, j) => j !== i) })}><Trash2 size={14} /></button>}</div></th>)}</tr></thead>
