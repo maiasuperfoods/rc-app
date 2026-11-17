@@ -20,12 +20,17 @@ function ago(iso?: string | null) {
   return d <= 0 ? "Signed in today" : `Signed in ${d}d ago`;
 }
 
-/** Shows a one-time link to copy and send to the person (WhatsApp, Slack, email…). */
-function LinkBox({ link, note, onClose }: { link: string; note?: string; onClose: () => void }) {
+/** Confirms the email went out, and keeps the one-time link as a backup to send another way (WhatsApp, Slack…). */
+function LinkBox({ link, note, emailedTo, emailError, onClose }: { link: string; note?: string; emailedTo?: string; emailError?: string; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="card-elev border border-gold/40 p-4 mt-4">
-      <div className="flex items-center gap-2 text-sm text-ink font-medium mb-1"><Link2 size={14} className="text-gold" /> Send this link to them</div>
+      {emailedTo ? (
+        <div className="flex items-center gap-2 text-sm text-good font-medium mb-1"><Check size={14} /> Invitation emailed to {emailedTo}</div>
+      ) : (
+        <div className="rounded-md bg-bad-dim text-bad text-sm px-3 py-2 mb-3">The email was not sent{emailError ? `: ${emailError}` : "."} Send them the link below yourself.</div>
+      )}
+      <div className="flex items-center gap-2 text-sm text-ink font-medium mb-1 mt-2"><Link2 size={14} className="text-gold" /> {emailedTo ? "The same link, if you want to send it another way" : "Send this link to them"}</div>
       <p className="text-xs text-dim mb-3">It signs them in once so they can set their password. It works one time and expires in 24 hours. {note}</p>
       <div className="flex gap-2">
         <input readOnly value={link} className="input font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
@@ -77,7 +82,7 @@ export function AccessManager({ data }: { data: AccessData }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
-  const [link, setLink] = useState<{ link: string; note?: string; at: string } | null>(null);
+  const [link, setLink] = useState<{ link: string; note?: string; emailedTo?: string; emailError?: string; at: string } | null>(null);
   const [pw, setPw] = useState<{ email: string; password: string; note?: string } | null>(null);
   const [demoPw, setDemoPw] = useState<{ email: string; password: string; note?: string } | null>(null);
   const [newBrand, setNewBrand] = useState({ name: "", email: "" });
@@ -87,12 +92,12 @@ export function AccessManager({ data }: { data: AccessData }) {
   const meEmail = data.me?.email ?? "";
   const isAdmin = data.me?.role === "admin";
 
-  const act = (at: string, fn: () => Promise<{ ok: boolean; error?: string; link?: string; note?: string; password?: string; email?: string }>, after?: () => void) => {
+  const act = (at: string, fn: () => Promise<{ ok: boolean; error?: string; link?: string; note?: string; password?: string; email?: string; emailedTo?: string; emailError?: string }>, after?: () => void) => {
     setErr(null);
     start(async () => {
       const r = await fn();
       if (!r.ok) return setErr(r.error ?? "Failed");
-      if (r.link) setLink({ link: r.link, note: r.note, at });
+      if (r.link) setLink({ link: r.link, note: r.note, emailedTo: r.emailedTo, emailError: r.emailError, at });
       if (r.password) (at === "__demo" ? setDemoPw : setPw)({ email: r.email ?? at, password: r.password, note: r.note });
       after?.();
       router.refresh();

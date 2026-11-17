@@ -63,3 +63,56 @@ export function sendPlatformAccess({ firstName, email, brandName, setPasswordUrl
       <p style="color:#777;font-size:12px">This link is personal to you. If it has expired, ask your coach for a new one.</p>`),
   });
 }
+
+// ---------- Platform sign-in emails (any student, not only the Private Circle) ----------
+
+const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+const platformShell = (body: string) => `
+  <div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;color:#111">
+    <p style="letter-spacing:.18em;font-size:11px;color:#9a7b2f;font-weight:700">RENAISSANCE COMMERCE</p>
+    ${body}
+    <p style="color:#777;font-size:12px">The button works once and for a limited time. If it has expired, reply to this email and we will send a new one.</p>
+    <p>Questions any time: reply to this email or write to <a href="mailto:${ADMIN()}">${ADMIN()}</a>.</p>
+  </div>`;
+const button = (url: string, label: string) => `<p><a href="${url}" style="display:inline-block;background:#B8943F;color:#0F0D0A;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:700">${label}</a></p><p style="color:#777;font-size:12px;word-break:break-all">${url}</p>`;
+
+/** A coach invited a student to a brand from Students & access. */
+export function sendStudentInvite({ email, brandName, setPasswordUrl, appUrl, existing }: { email: string; brandName: string; setPasswordUrl: string; appUrl: string; existing: boolean }) {
+  const brand = esc(brandName);
+  return send({
+    to: email,
+    replyTo: ADMIN(),
+    subject: existing ? `${brandName} has been added to your Renaissance Commerce account` : "Your Renaissance Commerce platform is ready",
+    html: platformShell(`
+      <h2 style="margin:0 0 12px">${existing ? `${brand} is on your account.` : `${brand} is set up and waiting for you.`}</h2>
+      <p>${existing ? "You already have a login. Use the button to sign in and pick a new password, or just sign in as usual." : "Your workspace holds the course, the roadmap that walks you through it, and the tools: unit economics, forecast, weekly review, inventory and creative. Start by choosing a password."}</p>
+      ${button(setPasswordUrl, existing ? "Sign in" : "Choose your password")}
+      <p>After that, sign in any time at <a href="${appUrl}" style="color:#9a7b2f">${appUrl}</a> with this email address.</p>`),
+  });
+}
+
+export function sendPasswordReset({ email, setPasswordUrl, appUrl }: { email: string; setPasswordUrl: string; appUrl: string }) {
+  return send({
+    to: email,
+    replyTo: ADMIN(),
+    subject: "Set a new password for Renaissance Commerce",
+    html: platformShell(`
+      <h2 style="margin:0 0 12px">Set a new password</h2>
+      <p>Your coach sent you a fresh sign-in link. Use it to choose a new password.</p>
+      ${button(setPasswordUrl, "Choose a new password")}
+      <p>Then sign in at <a href="${appUrl}" style="color:#9a7b2f">${appUrl}</a> with this email address.</p>`),
+  });
+}
+
+export function sendAssistantInvite({ email, name, setPasswordUrl, appUrl }: { email: string; name: string | null; setPasswordUrl: string; appUrl: string }) {
+  return send({
+    to: email,
+    replyTo: ADMIN(),
+    subject: "Your access to the Renaissance Commerce referral desk",
+    html: platformShell(`
+      <h2 style="margin:0 0 12px">${name ? `Welcome, ${esc(name.split(" ")[0])}.` : "Welcome."}</h2>
+      <p>You have been given access to the referral desk: partner requests, follow-ups and commissions. Start by choosing a password.</p>
+      ${button(setPasswordUrl, "Choose your password")}
+      <p>Then sign in at <a href="${appUrl}" style="color:#9a7b2f">${appUrl}</a> with this email address.</p>`),
+  });
+}

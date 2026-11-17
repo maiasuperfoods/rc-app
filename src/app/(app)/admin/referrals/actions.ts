@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireCoach, requireReferralStaff } from "@/lib/data";
 import { supabaseAdmin, supabaseServer } from "@/lib/supabase/server";
 import { setPasswordLink } from "@/lib/admin-api";
+import { sendAssistantInvite } from "@/lib/pc/email";
 import type { AgreementStatus, CommissionType } from "@/lib/referrals-shared";
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
@@ -162,8 +163,11 @@ export async function inviteAssistant(emailRaw: string, name: string) {
     const r = await admin.from("referral_staff").upsert({ user_id: link.data.user.id, email, name: clean(name, 120), added_by: userId });
     if (r.error) throw new Error(r.error.message);
     const h = await headers();
-    const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
-    return { link: setPasswordLink(origin, link.data.properties.hashed_token, type) };
+    const app = (process.env.APP_URL || `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`).replace(/\/$/, "");
+    const setPasswordUrl = setPasswordLink(app, link.data.properties.hashed_token, type);
+    let emailedTo: string | undefined, emailError: string | undefined;
+    try { await sendAssistantInvite({ email, name: clean(name, 120), setPasswordUrl, appUrl: app }); emailedTo = email; } catch (e) { emailError = e instanceof Error ? e.message : "The email could not be sent."; }
+    return { link: setPasswordUrl, emailedTo, emailError };
   }, true);
 }
 

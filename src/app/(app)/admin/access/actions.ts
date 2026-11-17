@@ -4,8 +4,10 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { requireCoach } from "@/lib/data";
 import { adminApi, setPasswordLink } from "@/lib/admin-api";
+import { supabaseServer } from "@/lib/supabase/server";
+import { sendPasswordReset, sendStudentInvite } from "@/lib/pc/email";
 
-type Result = { ok: true; link?: string; note?: string; password?: string; email?: string } | { ok: false; error: string };
+type Result = { ok: true; link?: string; note?: string; password?: string; email?: string; emailedTo?: string; emailError?: string } | { ok: false; error: string };
 
 async function origin() {
   const h = await headers();
@@ -26,10 +28,33 @@ async function run(fn: () => Promise<Result>): Promise<Result> {
   }
 }
 
+/** Links in emails always use the canonical address, so they work whichever host the coach was on. */
+const appUrl = async () => (process.env.APP_URL || (await origin())).replace(/\/$/, "");
+
+/** Sends the email and reports whether it went. The link is still returned, so a failed email never blocks an invite. */
+async function emailed(to: string, send: () => Promise<unknown>): Promise<{ emailedTo?: string; emailError?: string }> {
+  try {
+    await send();
+    return { emailedTo: to };
+  } catch (e) {
+    return { emailError: e instanceof Error ? e.message : "The email could not be sent." };
+  }
+}
+
 export async function inviteStudent(input: { email: string; brandName?: string; tenantId?: string }) {
   return run(async () => {
-    const r = await adminApi<{ token_hash: string; type: string; existing: boolean }>({ action: "invite", role: "student", ...input });
-    return { ok: true, link: setPasswordLink(await origin(), r.token_hash, r.type), note: r.existing ? "They already had an account: the link lets them set a new password, and the brand is added to it." : undefined };
+    const r = await adminApi<{ token_hash: string; type: string; existing: boolean; tenantId: string }>({ action: "invite", role: "student", ...input });
+    const app = await appUrl();
+    const link = setPasswordLink(app, r.token_hash, r.type);
+    let brandName = input.brandName?.trim() ?? "";
+    if (!brandName) {
+      const sb = await supabaseServer();
+      const { data } = await sb.from("tenants").select("name").eq("id", r.tenantId).maybeSingle();
+      brandName = data?.name ?? "Your brand";
+    }
+    const email = input.email.trim().toLowerCase();
+    const mail = await emailed(email, () => sendStudentInvite({ email, brandName, setPasswordUrl: link, appUrl: app, existing: r.existing }));
+    return { ok: true, link, ...mail, note: r.existing ? "They already had an account: the link lets them set a new password, and the brand is added to it." : undefined };
   });
 }
 
@@ -63,10 +88,14 @@ export async function seedDemoBrand() {
   });
 }
 
-export async function resetLink(email: string) {
+export async function resetLink(emailRaw: string) {
   return run(async () => {
+    const email = emailRaw.trim().toLowerCase();
     const r = await adminApi<{ token_hash: string; type: string }>({ action: "reset", email });
-    return { ok: true, link: setPasswordLink(await origin(), r.token_hash, r.type) };
+    const app = await appUrl();
+    const link = setPasswordLink(app, r.token_hash, r.type);
+    const mail = await emailed(email, () => sendPasswordReset({ email, setPasswordUrl: link, appUrl: app }));
+    return { ok: true, link, ...mail };
   });
 }
 

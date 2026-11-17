@@ -430,7 +430,8 @@ export function TeamTab({ desk }: { desk: Desk }) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [link, setLink] = useState<string | null>(null);
-  const invite = async () => { setLink(null); const r = await A.inviteAssistant(email, name); if (r.ok) { setLink(r.link); setEmail(""); setName(""); setError(null); } else setError(r.error); };
+  const [mail, setMail] = useState<{ to?: string; error?: string }>({});
+  const invite = async () => { setLink(null); const r = await A.inviteAssistant(email, name); if (r.ok) { setLink(r.link); setMail({ to: r.emailedTo, error: r.emailError }); setEmail(""); setName(""); setError(null); } else setError(r.error); };
   return (
     <div className="space-y-5 max-w-2xl">
       <p className="text-sm text-dim">An assistant can open this referral desk and nothing else: no student numbers, no coaching calls, no brand pages. Coaches already have access.</p>
@@ -440,7 +441,7 @@ export function TeamTab({ desk }: { desk: Desk }) {
           <F label="Name"><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></F>
         </div>
         <button type="button" className="btn btn-primary" disabled={pending || !email} onClick={invite}>Give access</button>
-        {link && <div className="rounded-lg bg-elev p-3 space-y-2"><p className="text-sm text-dim">Send them this link to set a password. It works once.</p><code className="block text-xs text-ink break-all">{link}</code><CopyBtn text={link} label="Copy link" /></div>}
+        {link && <div className="rounded-lg bg-elev p-3 space-y-2">{mail.to ? <p className="text-sm text-good">Invitation emailed to {mail.to}.</p> : <p className="text-sm text-bad">The email was not sent{mail.error ? `: ${mail.error}` : "."}</p>}<p className="text-sm text-dim">{mail.to ? "The same link, if you want to send it another way. It works once." : "Send them this link yourself to set a password. It works once."}</p><code className="block text-xs text-ink break-all">{link}</code><CopyBtn text={link} label="Copy link" /></div>}
         <Err e={error} />
       </div>
       {desk.staff.length > 0 && (
