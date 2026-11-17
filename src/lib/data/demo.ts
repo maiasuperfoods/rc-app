@@ -1,6 +1,6 @@
 import type { DataSource, SessionUser } from "./source";
-import type { BrandBook, CoachNote, CostInputs, Membership, Offer, OpexLine, Sku, SpendPlan, Supplier, Tenant, Upsell, WbrReport, WbrState } from "@/lib/types";
-import { emptyWbrState } from "@/lib/types";
+import type { BrandBook, CoachNote, CostInputs, Membership, Offer, OpexLine, Sku, SpendPlan, Supplier, Tenant, Upsell, WbrReport, WbrState, RoadmapState } from "@/lib/types";
+import { emptyWbrState, emptyRoadmapState } from "@/lib/types";
 import * as D from "@/lib/demo/data";
 import type { ForecastInputs } from "@/lib/calc/forecast";
 
@@ -20,6 +20,7 @@ type Store = {
   notes: CoachNote[];
   forecasts: Record<string, ForecastInputs>;
   wbrState: Record<string, WbrState>;
+  roadmap: Record<string, RoadmapState>;
 };
 const g = globalThis as unknown as { __rcDemoStore?: Store };
 function store(): Store {
@@ -38,6 +39,7 @@ function store(): Store {
       notes: structuredClone(D.demoNotes),
       forecasts: structuredClone(D.demoForecasts),
       wbrState: {},
+      roadmap: {},
     };
   }
   return g.__rcDemoStore;
@@ -210,6 +212,12 @@ export class DemoSource implements DataSource {
   }
   async saveWbrState(tenantId: string, state: WbrState) {
     store().wbrState[tenantId] = state;
+  }
+  async roadmapState(tenantId: string) {
+    return store().roadmap[tenantId] ?? emptyRoadmapState();
+  }
+  async saveRoadmapState(tenantId: string, state: RoadmapState) {
+    store().roadmap[tenantId] = state;
   }
 
   async notes(tenantId: string) {

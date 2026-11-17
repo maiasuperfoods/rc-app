@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Boxes, Calculator, CalendarCheck, Handshake, Home, LineChart, Phone, Plug, Sparkles, Users, KeyRound } from "lucide-react";
+import { BookOpen, Boxes, Calculator, CalendarCheck, Handshake, Home, LineChart, Map, Phone, Plug, Sparkles, Users, KeyRound } from "lucide-react";
 
 const studentLinks = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/roadmap", label: "Roadmap", icon: Map },
   { href: "/coaching", label: "Coaching", icon: Handshake },
   { href: "/brand-book", label: "Brand Book", icon: BookOpen },
   { href: "/unit-economics", label: "Unit Economics", icon: Calculator },

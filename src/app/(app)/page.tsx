@@ -5,6 +5,8 @@ import { Card, Empty, PageHeader, Pill, Stat, fmtMoney, fmtPct, fmtX } from "@/c
 import { RevenueSpendChart } from "@/components/charts";
 import { pctChange } from "@/lib/calc/wbr";
 import { redirect } from "next/navigation";
+import { ArrowRight } from "lucide-react";
+import { loadRoadmap } from "@/lib/roadmap-load";
 
 const STAGE_LABEL = { grind: "Grind", validation: "Validation", acceleration: "Acceleration", expansion: "Expansion" } as const;
 
@@ -20,6 +22,8 @@ export default async function HomePage() {
   const hasData = s.daily.length > 0;
 
   const nextActions = buildNextActions(s);
+  const roadmap = await loadRoadmap(ctx.db, t).catch(() => null);
+  const rmNext = roadmap?.view.next ?? null;
 
   return (
     <>
@@ -37,6 +41,17 @@ export default async function HomePage() {
           </Link>
         }
       />
+
+      {roadmap && (!roadmap.start || rmNext) && (
+        <Link href={rmNext ? `/roadmap#${rmNext.phase.phase.id}` : "/roadmap"} className="card flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 mb-5 border-gold hover:bg-gold-dim transition-colors">
+          <span className="label">Your next step</span>
+          <span className="flex-1 min-w-48">
+            <span className="block text-sm font-medium text-ink">{rmNext ? rmNext.step.step.title : "Pick your starting point on the roadmap"}</span>
+            <span className="block text-xs text-mute">{rmNext ? `Phase ${rmNext.phase.index}: ${rmNext.phase.phase.title} · ${roadmap.view.done} of ${roadmap.view.total} steps done` : "One question, then the course and tools line up in the order you need them."}</span>
+          </span>
+          <ArrowRight size={16} className="text-gold" />
+        </Link>
+      )}
 
       {!hasData ? (
         <Empty title="Your numbers will appear here" body="Connect Shopify and your ad account, and the first backfill will fill this page within 24 hours. Unit Economics works right now without any connection." action={{ href: "/integrations", label: "Connect your store" }} />

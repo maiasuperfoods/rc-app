@@ -1,6 +1,7 @@
 import type { ForecastInputs } from "@/lib/calc/forecast";
 import type {
   WbrState,
+  RoadmapState,
   AdDailyInsight,
   BrandBook,
   CoachNote,
@@ -88,6 +89,8 @@ export interface DataSource {
   annotateWbr(reportId: string, annotation: string): Promise<void>;
   wbrState(tenantId: string): Promise<WbrState>;
   saveWbrState(tenantId: string, state: WbrState): Promise<void>;
+  roadmapState(tenantId: string): Promise<RoadmapState>;
+  saveRoadmapState(tenantId: string, state: RoadmapState): Promise<void>;
 
   // coach notes
   notes(tenantId: string): Promise<CoachNote[]>;

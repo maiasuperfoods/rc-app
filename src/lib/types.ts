@@ -342,3 +342,15 @@ export interface WbrState {
   items: WbrItem[];
 }
 export const emptyWbrState = (): WbrState => ({ targets: {}, owners: {}, notes: {}, items: [] });
+
+// ---- Roadmap ---------------------------------------------------------------
+
+/** Where a brand joins the roadmap. Decides which phases start out marked as already behind them. */
+export type RoadmapStart = "idea" | "product" | "selling" | "scaling";
+export interface RoadmapState {
+  start: RoadmapStart | null;
+  done: Record<string, string>; // step id → when it was ticked by hand
+  skipped: Record<string, true>; // step or phase id → set aside as not applicable
+  reopened: Record<string, true>; // phase id → a phase the starting point skipped, opened anyway
+}
+export const emptyRoadmapState = (): RoadmapState => ({ start: null, done: {}, skipped: {}, reopened: {} });

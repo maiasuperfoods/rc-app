@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { DataSource, SessionUser } from "./source";
 import type {
   WbrState,
+  RoadmapState,
   AdDailyInsight,
   BrandBook,
   CoachNote,
@@ -24,7 +25,7 @@ import type {
   WbrReport,
 } from "@/lib/types";
 import { emptyBrandBook } from "./demo";
-import { emptyWbrState } from "@/lib/types";
+import { emptyWbrState, emptyRoadmapState } from "@/lib/types";
 import type { ForecastInputs } from "@/lib/calc/forecast";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -247,6 +248,13 @@ export class SupabaseSource implements DataSource {
   }
   async annotateWbr(reportId: string, annotation: string) {
     await this.q(this.db.from("wbr_reports").update({ coach_annotation: annotation }).eq("id", reportId));
+  }
+  async roadmapState(tenantId: string): Promise<RoadmapState> {
+    const rows = await this.q<Row[]>(this.db.from("roadmap_state").select("data").eq("tenant_id", tenantId).limit(1));
+    return rows[0] ? { ...emptyRoadmapState(), ...(rows[0].data as Partial<RoadmapState>) } : emptyRoadmapState();
+  }
+  async saveRoadmapState(tenantId: string, state: RoadmapState) {
+    await this.q(this.db.from("roadmap_state").upsert({ tenant_id: tenantId, data: state, updated_at: new Date().toISOString() }));
   }
   async wbrState(tenantId: string): Promise<WbrState> {
     const rows = await this.q<Row[]>(this.db.from("wbr_state").select("data").eq("tenant_id", tenantId).limit(1));
