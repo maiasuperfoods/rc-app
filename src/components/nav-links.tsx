@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Boxes, Calculator, CalendarCheck, Handshake, Home, LineChart, Map, Phone, Plug, Sparkles, Users, KeyRound } from "lucide-react";
+import { BookOpen, Boxes, Calculator, CalendarCheck, Handshake, Home, LineChart, Map, Phone, Plug, Sparkles, Users, KeyRound, BadgeDollarSign } from "lucide-react";
 
 const studentLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -16,7 +16,7 @@ const studentLinks = [
   { href: "/integrations", label: "Connections", icon: Plug },
 ];
 
-export function NavLinks({ isCoach, hasTenant }: { isCoach: boolean; hasTenant: boolean }) {
+export function NavLinks({ isCoach, isVa = false, hasTenant, pendingReferrals = 0 }: { isCoach: boolean; isVa?: boolean; hasTenant: boolean; pendingReferrals?: number }) {
   const path = usePathname();
   const active = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
   return (
@@ -31,7 +31,7 @@ export function NavLinks({ isCoach, hasTenant }: { isCoach: boolean; hasTenant: 
       {isCoach && (
         <>
           <div className="label px-3 pt-4 pb-1">Coaching</div>
-          <Link href="/admin" className={`nav-link ${active("/admin") && !active("/admin/access") && !active("/admin/calls") ? "active" : ""}`}>
+          <Link href="/admin" className={`nav-link ${active("/admin") && !active("/admin/access") && !active("/admin/calls") && !active("/admin/referrals") ? "active" : ""}`}>
             <Users size={16} strokeWidth={1.75} />
             All students
           </Link>
@@ -42,6 +42,16 @@ export function NavLinks({ isCoach, hasTenant }: { isCoach: boolean; hasTenant: 
           <Link href="/admin/access" className={`nav-link ${active("/admin/access") ? "active" : ""}`}>
             <KeyRound size={16} strokeWidth={1.75} />
             Students &amp; access
+          </Link>
+        </>
+      )}
+      {(isCoach || isVa) && (
+        <>
+          {!isCoach && <div className="label px-3 pt-4 pb-1">Partners</div>}
+          <Link href="/admin/referrals" className={`nav-link ${active("/admin/referrals") ? "active" : ""}`}>
+            <BadgeDollarSign size={16} strokeWidth={1.75} />
+            Referrals
+            {pendingReferrals > 0 && <span className="ml-auto pill pill-gold tabular-nums">{pendingReferrals}</span>}
           </Link>
         </>
       )}

@@ -86,6 +86,9 @@ export class DemoSource implements DataSource {
   async isCoach(userId: string) {
     return userId === D.DEMO_COACH.id;
   }
+  async isReferralStaff() {
+    return false;
+  }
 
   async tenants(ids: string[] | "all") {
     const all = store().tenants;

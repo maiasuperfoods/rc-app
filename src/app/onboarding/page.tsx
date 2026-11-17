@@ -11,6 +11,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   const sp = await searchParams;
   const ctx = await getContext();
   if (!ctx.demo && ctx.isCoach && !ctx.tenant) redirect("/admin");
+  if (ctx.isVa && !ctx.tenant) redirect("/admin/referrals");
   const startNew = sp.new === "1" || !ctx.tenant;
   const t = startNew ? null : ctx.tenant;
   const [integrations, skus, offers, costs, book] = t

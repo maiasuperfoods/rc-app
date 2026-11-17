@@ -10,7 +10,7 @@ import { KbNavTree } from "./kb/nav-tree";
 import { KbProgressProvider } from "./kb/progress";
 import { ResourcesNav } from "./resources/nav";
 
-export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false, children }: { ctx: AppContext; theme?: Theme; kb?: KbNavTreeData; kbDone?: string[]; standalone?: boolean; children: ReactNode }) {
+export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false, pendingReferrals = 0, children }: { ctx: AppContext; theme?: Theme; kb?: KbNavTreeData; kbDone?: string[]; standalone?: boolean; pendingReferrals?: number; children: ReactNode }) {
   return (
     <KbProgressProvider initial={kbDone} demo={ctx.demo}>
     <div className="min-h-screen md:grid md:grid-cols-[264px_1fr]">
@@ -32,7 +32,7 @@ export function Shell({ ctx, theme = "dark", kb, kbDone = [], standalone = false
           </div>
         )}
         <nav className="px-3 py-3 flex-1 overflow-y-auto">
-          {!standalone && <NavLinks isCoach={ctx.isCoach} hasTenant={Boolean(ctx.tenant)} />}
+          {!standalone && <NavLinks isCoach={ctx.isCoach} isVa={ctx.isVa} hasTenant={Boolean(ctx.tenant)} pendingReferrals={pendingReferrals} />}
           {kb && kb.length > 0 && (
             <>
               <div className={`label px-3 pb-1 ${standalone ? "pt-1" : "pt-4"}`}>Learn</div>

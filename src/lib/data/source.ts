@@ -40,6 +40,8 @@ export interface DataSource {
   currentUser(): Promise<SessionUser | null>;
   memberships(userId: string): Promise<Membership[]>;
   isCoach(userId: string): Promise<boolean>;
+  /** Staff who run the referral desk without being a coach (a VA). */
+  isReferralStaff(userId: string): Promise<boolean>;
 
   // tenants
   tenants(ids: string[] | "all"): Promise<Tenant[]>;

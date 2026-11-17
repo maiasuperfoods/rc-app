@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Newspaper, Repeat } from "lucide-react";
+import { ArrowUpRight, Handshake, Newspaper, Repeat } from "lucide-react";
 import { getPpuList, getPresaleList, resHref } from "@/lib/resources";
 import { Crumbs, KbTitle } from "@/components/kb/bits";
 
@@ -23,6 +23,14 @@ export default async function ResourcesHub() {
       kicker: "Upsell funnels",
       body: "How successful brands use post-purchase upsell videos to raise AOV: funnels, offers, full scripts and the psychology behind them.",
       meta: `${ppu.length} brand dossiers · ${ppu.reduce((n, b) => n + b.upsell_count, 0)} upsells`,
+    },
+    {
+      href: "/resources/partners",
+      icon: Handshake,
+      title: "Partners",
+      kicker: "Vendors we trust",
+      body: "Payment processing, fulfillment, retention, software and more. Request access and we set you up with the partner directly.",
+      meta: "Request access",
     },
   ];
   return (

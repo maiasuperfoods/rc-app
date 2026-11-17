@@ -60,6 +60,10 @@ export class SupabaseSource implements DataSource {
     const rows = await this.q<Row[]>(this.db.from("app_roles").select("role").eq("user_id", userId).in("role", ["coach", "admin"]));
     return rows.length > 0;
   }
+  async isReferralStaff(userId: string) {
+    const { data } = await this.db.from("referral_staff").select("user_id").eq("user_id", userId).limit(1);
+    return (data ?? []).length > 0;
+  }
 
   async tenants(ids: string[] | "all") {
     let query = this.db.from("tenants").select("*").order("name");

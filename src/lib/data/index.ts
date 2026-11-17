@@ -22,6 +22,8 @@ export interface AppContext {
   user: SessionUser;
   memberships: Membership[];
   isCoach: boolean;
+  /** Runs the referral desk only (a VA): no brand, no coaching data. */
+  isVa: boolean;
   tenants: Tenant[]; // tenants this user can switch between
   tenant: Tenant | null; // the active tenant
   demo: boolean;
@@ -34,19 +36,27 @@ export async function getContext(opts: { requireTenant?: boolean } = {}): Promis
   const db = await getDataSource();
   const user = await db.currentUser();
   if (!user) redirect("/login");
-  const [memberships, isCoach] = await Promise.all([db.memberships(user.id), db.isCoach(user.id)]);
+  const [memberships, isCoach, staff] = await Promise.all([db.memberships(user.id), db.isCoach(user.id), db.isReferralStaff(user.id)]);
+  const isVa = staff && !isCoach;
   const tenants = isCoach ? await db.tenants("all") : await db.tenants(memberships.map((m) => m.tenantId));
   const c = await cookies();
   const wanted = c.get(TENANT_COOKIE)?.value;
   const tenant = tenants.find((t) => t.id === wanted) ?? tenants[0] ?? null;
-  if (opts.requireTenant && !tenant) redirect(isCoach ? "/admin" : "/onboarding");
+  if (opts.requireTenant && !tenant) redirect(isCoach ? "/admin" : isVa && memberships.length === 0 ? "/admin/referrals" : "/onboarding");
   const demo = isDemoMode();
   const canEdit = Boolean(tenant) && (demo || memberships.some((m) => m.tenantId === tenant!.id));
-  return { db, user, memberships, isCoach, tenants, tenant, demo, canEdit };
+  return { db, user, memberships, isCoach, isVa, tenants, tenant, demo, canEdit };
 }
 
 export async function requireCoach(): Promise<AppContext> {
   const ctx = await getContext();
   if (!ctx.isCoach) redirect("/");
+  return ctx;
+}
+
+/** Coaches and referral assistants may open the referral desk. */
+export async function requireReferralStaff(): Promise<AppContext> {
+  const ctx = await getContext();
+  if (!ctx.isCoach && !ctx.isVa) redirect("/");
   return ctx;
 }
